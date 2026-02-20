@@ -109,19 +109,20 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `finalyearproject`.`ProductsTest`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `finalyearproject`.`ProductsTest` (
+CREATE TABLE IF NOT EXISTS `finalyearproject`.`Products` (
   `ProductID` INT NOT NULL AUTO_INCREMENT,
-  `ProductName` VARCHAR(45) NULL,
-  `GTIN13` VARCHAR(45) NULL,
+  `ProductName` VARCHAR(200) NULL,
+  `GTIN13` VARCHAR(20) NULL,
   `CostPrice` DECIMAL(10,2) NULL,
   `SellingPrice` DECIMAL(10,2) NULL,
   `StockCount` INT NULL,
   `Availability` VARCHAR(45) NULL,
-  `ProductDescription` VARCHAR(256) Null,
-  `Brand` VARCHAR(45) NULL,
-  `ProductGroup1` VARCHAR(45) NULL,
-  `ProductGroup2` VARCHAR(45) NULL,
-  `ProductGroup3` VARCHAR(45) NULL,
+  `ProductDescription` VARCHAR(2000) Null,
+  `Brand` VARCHAR(200) NULL,
+  `ProductGroup1` VARCHAR(100) NULL,
+  `ProductGroup2` VARCHAR(100) NULL,
+  `ProductGroup3` VARCHAR(100) NULL,
+  `Image` VARCHAR(1000) NULL,
   `ReorderLevel` INT NULL,
   PRIMARY KEY (`ProductID`))
 ENGINE = InnoDB;
@@ -141,16 +142,16 @@ USE finalyearproject;
 SHOW TABLES;
 
 
-LOAD DATA LOCAL INFILE 'C:\\JsonData\\tesco_groceries_dataset_cutdown.csv'
-INTO TABLE productstest
-FIELDS TERMINATED BY ','
+LOAD DATA LOCAL INFILE 'C:\\JsonData\\DatabaseFiles\\tesco_groceries_dataset_cutdown_tab_delimited.txt'
+INTO TABLE products
+FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
-(@name_csv, @gtin13_csv, @price_csv, @availability_csv, @description_csv, @brand_csv, @breadcrumbsgroup1_csv, @breadcrumbsgroup2_csv, @breadcrumbsgroup3_csv)
+(@name_csv, @gtin13_csv, @price_csv, @availability_csv, @description_csv, @brand_csv, @breadcrumbsgroup1_csv, @breadcrumbsgroup2_csv, @breadcrumbsgroup3_csv, @images_csv)
 SET ProductName = @name_csv,
 	GTIN13 = @gtin13_csv, 
     CostPrice = @price_csv,
-    SellingPrice = (@price_csv * 0.8),
+    SellingPrice = (@price_csv * 1.2),
     StockCount = (rand() * 100),
     Availability = @availability_csv,
 	ProductDescription = @description_csv,
@@ -158,10 +159,11 @@ SET ProductName = @name_csv,
     ProductGroup1 = @breadcrumbsgroup1_csv,
     ProductGroup2 = @breadcrumbsgroup2_csv,
     ProductGroup3 = @breadcrumbsgroup3_csv,
-    ReorderLevel = 10;
-
+	Image =  @images_csv,
+	ReorderLevel = 10;
+    
 SET GLOBAL local_infile = 1;
 
-truncate table ProductsTest
-DROP TABLE productstest;
-SELECT * FROM productstest;
+truncate table Products;
+SELECT * FROM Products;
+DROP TABLE Products;
