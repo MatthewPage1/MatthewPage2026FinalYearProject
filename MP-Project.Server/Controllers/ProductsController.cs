@@ -18,13 +18,13 @@ public class ProductsController : ControllerBase
 	public async Task<ActionResult<List<Product>>> GetProducts()
 	{
 
-		return await _context.productstest.ToListAsync();
+		return await _context.products.ToListAsync();
 	}
 
 	[HttpPut("{id}/decrease-stock")]
 	public async Task<IActionResult> DecreaseStock(int id, int quantity)
 	{
-		var product = await _context.productstest.FindAsync(id);
+		var product = await _context.products.FindAsync(id);
 
 		if (product == null)
 			return NotFound("Product not found.");
@@ -52,4 +52,30 @@ public class ProductsController : ControllerBase
 
 		return Ok(product);
 	}
+
+	[HttpPut("{id}/increase-stock")]
+	public async Task<IActionResult> IncreaseStock(int id, int quantity)
+	{
+		var product = await _context.products.FindAsync(id);
+
+		if (product == null)
+			return NotFound("Product not found.");
+
+		if (quantity <= 0)
+			return BadRequest("Quantity must be greater than zero.");
+
+		product.StockCount += quantity;
+
+		// Update availability
+		if (product.StockCount > 0)
+		{
+			product.Availability = "InStock";
+		}
+
+		await _context.SaveChangesAsync();
+
+		return Ok(product);
+	}
+
+
 }

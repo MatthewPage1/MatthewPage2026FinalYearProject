@@ -3,77 +3,63 @@
 @inject IHttpClientFactory ClientFactory
 @using MP_Project.Shared
 
-<h3>Products</h3>
+<div class="content-card">
 
-<div style="position: relative; width: 400px; z-index: 10000;">
-
-    <input type="text"
-           class="form-control"
-           placeholder="Search product..."
-           @bind="searchText"
-           @bind:event="oninput" />
-
-    @if (SearchResults.Any())
-    {
-        <div class="search-dropdown">
-            @foreach (var product in SearchResults)
-            {
-                <div class="search-item"
-                     @onclick="() => SelectFromSearch(product)">
-                    @product.ProductName
-                </div>
-            }
-        </div>
-    }
-
-</div>
-
-
-@if (products == null)
-{
-    <p>Loading products...</p>
-}
-else
-{
-    <div class="product-box">
-        <table class="table table-hover mb-0">
-            <thead class="table-light sticky-top">
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var product in products)
-                {
-                    <tr class="@(selectedProduct?.ProductId == product.ProductId ? "table-primary" : "")"
-                        @onclick="() => SelectProduct(product)"
-                        style="cursor:pointer;">
-                        <td>@product.ProductId</td>
-                        <td>@product.ProductName</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- TITLE -->
+    <div class="section-title">
+        Item List
     </div>
 
-    <br />
+    <!-- SEARCH -->
+    <div class="search-bar-container">
+        <input type="text"
+               placeholder="Search product..."
+               @bind="searchText"
+               @bind:event="oninput" />
+    </div>
 
-    <button class="btn btn-primary" @onclick="ShowSelection">
-        Show Selected
-    </button>
+    <!-- PRODUCT LIST -->
+    <div class="product-list">
 
-    @if (message != null)
-    {
-        <p class="mt-2"><strong>@message</strong></p>
-    }
-}
+        @foreach (var product in FilteredProducts)
+        {
+            <div class="product-row">
 
+                <div class="product-image-box">
+                    @if (!string.IsNullOrWhiteSpace(product.Image))
+                    {
+                        <img src="@product.Image" alt="@product.ProductName" />
+                    }
+                    else
+                    {
+                        <span>No Image</span>
+                    }
+                </div>
+
+                <div class="product-info-box">
+
+                    <h5>@product.ProductName</h5>
+
+                    <div class="product-meta">
+                        <span><strong>ID:</strong> @product.ProductId</span>
+                        <span><strong>Quantity:</strong> @product.StockCount</span>
+                    </div>
+
+                    <p class="product-description-text">
+                        @product.ProductDescription
+                    </p>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
 @code {
 
     private List<Product> products = new();
-    private Product? selectedProduct;
-    private string? message;
     private string searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -84,34 +70,10 @@ else
             products = result;
     }
 
-    private IEnumerable<Product> SearchResults =>
+    private IEnumerable<Product> FilteredProducts =>
         string.IsNullOrWhiteSpace(searchText)
-            ? Enumerable.Empty<Product>()
-            : products
-                .Where(p => p.ProductName != null &&
-                            p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(8);
-
-    private void SelectProduct(Product product)
-    {
-        selectedProduct = product;
-    }
-
-    private void SelectFromSearch(Product product)
-    {
-        selectedProduct = product;
-        searchText = product.ProductName ?? "";
-
-        // Move selected product to top
-        products.Remove(product);
-        products.Insert(0, product);
-    }
-
-
-    private void ShowSelection()
-    {
-        message = selectedProduct != null
-            ? $"Selected: {selectedProduct.ProductName}"
-            : "No product selected.";
-    }
+            ? products
+            : products.Where(p =>
+                p.ProductName != null &&
+                p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 }
