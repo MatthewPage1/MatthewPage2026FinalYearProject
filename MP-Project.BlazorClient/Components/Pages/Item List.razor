@@ -38,11 +38,15 @@
 
                 <div class="product-info-box">
 
-                    <h5>@product.ProductName</h5>
-
                     <div class="product-meta">
                         <span><strong>ID:</strong> @product.ProductId</span>
-                        <span><strong>Quantity:</strong> @product.StockCount</span>
+
+                        <span>
+                            <strong>Quantity:</strong> @product.StockCount
+                            <span class="stock-badge @GetStockClass(product.StockCount)">
+                                @GetStockLabel(product.StockCount)
+                            </span>
+                        </span>
                     </div>
 
                     <p class="product-description-text">
@@ -76,4 +80,28 @@
             : products.Where(p =>
                 p.ProductName != null &&
                 p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+    private string GetStockClass(int stock)
+    {
+        if (stock <= 10)
+            return "stock-red";
+
+        if (stock <= 20)
+            return "stock-orange";
+
+        return "stock-green";
+    }
+
+    private string GetStockLabel(int stock)
+    {
+        if (stock <= 10)
+            return "Low";
+
+        if (stock <= 20)
+            return "Medium";
+
+        return "Good";
+    }
+
+
 }
