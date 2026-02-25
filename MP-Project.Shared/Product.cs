@@ -8,7 +8,7 @@
 		public int ReorderLevel { get; set; }
 		public string? Availability { get; set; }
 		public string? ProductDescription { get; set; }
-		
+		public string? ProductGroup1 { get; set; }
 		public string? Image { get; set; }
 	}
 }

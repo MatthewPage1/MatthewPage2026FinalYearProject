@@ -1,0 +1,116 @@
+﻿@page "/inventory-updates"
+@using MP_Project.Shared
+@inject IHttpClientFactory ClientFactory
+
+<div class="content-card">
+
+    <div class="section-title">
+        Inventory Updates
+    </div>
+
+    <div class="search-bar-container">
+        <input type="text"
+               class="form-control"
+               placeholder="Search product..." />
+    </div>
+
+    <div class="inventory-grid">
+
+        <div class="inventory-panel">
+            <div class="panel-title">Best Sellers</div>
+            <div class="panel-body">
+                @if (BestSellers != null)
+                {
+                    @foreach (var item in BestSellers)
+                    {
+                        <div class="panel-item">@item.ProductName</div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="inventory-panel">
+            <div class="panel-title">Underperforming</div>
+            <div class="panel-body">
+                @if (Underperforming != null)
+                {
+                    @foreach (var item in Underperforming)
+                    {
+                        <div class="panel-item">@item.ProductName</div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="inventory-panel">
+            <div class="panel-title">Total Stock</div>
+            <div class="stock-list">
+                @if (TotalStockByGroup != null)
+                {
+                    @foreach (var group in TotalStockByGroup)
+                    {
+                        <div class="panel-item">
+                            <strong>@group.ProductGroup</strong>
+                            <span>@group.TotalStock</span>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="total-stock-footer">
+                <span class="total-stock-boxed">
+                    Total Stock: @TotalStockByGroup?.Sum(x => x.TotalStock)
+                </span>
+            </div>
+        </div>
+
+        <div class="inventory-panel">
+            <div class="panel-title">Recently Ordered</div>
+            <div class="panel-body">
+                @if (RecentlyOrdered != null)
+                {
+                    @foreach (var item in RecentlyOrdered)
+                    {
+                        <div class="panel-item">@item.ProductName</div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+    private List<Product>? BestSellers;
+    private List<Product>? Underperforming;
+    private List<Product>? RecentlyOrdered;
+    private List<GroupStock>? TotalStockByGroup;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = ClientFactory.CreateClient("API");
+        var dashboard = await http.GetFromJsonAsync<DashboardDto>("api/products/dashboard");
+
+        if (dashboard != null)
+        {
+            BestSellers = dashboard.BestSellers;
+            Underperforming = dashboard.Underperforming;
+            RecentlyOrdered = dashboard.RecentlyOrdered;
+            TotalStockByGroup = dashboard.TotalStockByGroup;
+        }
+    }
+
+    public class DashboardDto
+    {
+        public List<Product>? BestSellers { get; set; }
+        public List<Product>? Underperforming { get; set; }
+        public List<Product>? RecentlyOrdered { get; set; }
+        public List<GroupStock>? TotalStockByGroup { get; set; }
+    }
+
+    public class GroupStock
+    {
+        public string? ProductGroup { get; set; }
+        public int TotalStock { get; set; }
+    }
+}

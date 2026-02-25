@@ -73,7 +73,6 @@ body {
     flex-direction: column;
 }
 
-/* HEADER */
 .header {
     font-size: 2rem;
     font-weight: bold;
@@ -84,7 +83,6 @@ body {
     margin: 0;
 }
 
-/* Page content */
 .page-content {
     padding: 2rem;
     flex: 1;
@@ -132,7 +130,7 @@ body {
     }
 
 /* ===============================
-   PRODUCT LIST (SCROLLABLE)
+   PRODUCT LIST
 ================================= */
 .product-list {
     flex: 1;
@@ -142,9 +140,6 @@ body {
     gap: 1rem;
 }
 
-/* ===============================
-   PRODUCT ROW
-================================= */
 .product-row {
     display: flex;
     gap: 1.5rem;
@@ -160,9 +155,6 @@ body {
         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 
-/* ===============================
-   PRODUCT IMAGE
-================================= */
 .product-image-box {
     width: 220px;
     height: 150px;
@@ -180,9 +172,6 @@ body {
         object-fit: cover;
     }
 
-/* ===============================
-   PRODUCT INFO
-================================= */
 .product-info-box {
     flex: 1;
     display: flex;
@@ -195,7 +184,6 @@ body {
         font-size: 1.3rem;
     }
 
-/* ID + Quantity row */
 .product-meta {
     display: flex;
     gap: 30px;
@@ -203,17 +191,14 @@ body {
     font-weight: 500;
 }
 
-/* Description */
 .product-description-text {
     margin: 0;
     font-size: 0.95rem;
 }
 
-
 /* ===============================
    STOCK BADGE
 ================================= */
-
 .stock-badge {
     margin-left: 10px;
     padding: 3px 8px;
@@ -235,62 +220,97 @@ body {
     background-color: #dc3545;
 }
 
+/* =========================================
+   INVENTORY UPDATES PAGE
+========================================= */
 
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* PANEL */
+.inventory-panel {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.panel-title {
+    background-color: #e2e2e2;
+    padding: 12px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Scrollable list */
+.stock-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+/* Items */
+.panel-item {
+    padding: 8px 6px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+}
+
+    .panel-item:last-child {
+        border-bottom: none;
+    }
+
+.total-stock-footer {
+    padding: 15px 0;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+}
+
+.total-stock-boxed {
+    background: #cfcfcf;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: 1px solid #bbb;
+}
+
+/* Scrollbar */
+.stock-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.stock-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
 
 /* ===============================
-   RESPONSIVE DESIGN
+   RESPONSIVE
 ================================= */
 
-/* Tablet */
-@media (max-width: 992px) {
-
-    .sidebar {
-        width: 200px;
-    }
-
-    .header {
-        font-size: 1.6rem;
-    }
-
-    .content-card {
-        height: 80vh;
+@media (max-width: 1000px) {
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-
-    .app-container {
-        flex-direction: column;
+@media (max-width: 600px) {
+    .inventory-grid {
+        grid-template-columns: 1fr;
     }
 
-    .sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 20px;
-    }
-
-    .nav-item {
-        margin-right: 8px;
-        white-space: nowrap;
-    }
-
-    .main-content {
-        width: 100%;
-    }
-
-    .product-row {
-        flex-direction: column;
-    }
-
-    .product-image-box {
-        width: 100%;
-        height: 180px;
-    }
-
-    .product-meta {
-        flex-direction: column;
-        gap: 6px;
+    .inventory-panel {
+        height: 350px;
     }
 }

@@ -11,5 +11,6 @@ namespace MP_Project.Server.Data
 		: base(options) { }
 
 		public DbSet<Product> products { get; set; }
+		public DbSet<StockMovement> StockMovements { get; set; }
 	}
 }
