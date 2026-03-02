@@ -1,17 +1,13 @@
 ﻿@page "/"
 @page "/item-list"
-@rendermode InteractiveServer
 @inject IHttpClientFactory ClientFactory
 @using MP_Project.Shared
 
 <div class="content-card">
-
-    <!-- TITLE -->
     <div class="section-title">
         Item List
     </div>
 
-    <!-- SEARCH -->
     <div class="search-bar-container">
         <input type="text"
                placeholder="Search product..."
@@ -19,13 +15,10 @@
                @bind:event="oninput" />
     </div>
 
-    <!-- PRODUCT LIST -->
     <div class="product-list">
-
         @foreach (var product in FilteredProducts)
         {
             <div class="product-row">
-
                 <div class="product-image-box">
                     @if (!string.IsNullOrWhiteSpace(product.Image))
                     {
@@ -38,14 +31,12 @@
                 </div>
 
                 <div class="product-info-box">
-
                     <div class="product-meta">
                         <span><strong>ID:</strong> @product.ProductId</span>
-
                         <span>
                             <strong>Quantity:</strong> @product.StockCount
-                            <span class="stock-badge @GetStockClass(product.StockCount)">
-                                @GetStockLabel(product.StockCount)
+							<span class="stock-badge @GetStockColour(product.StockCount)">
+                                @GetStockStatus(product.StockCount)
                             </span>
                         </span>
                     </div>
@@ -53,15 +44,12 @@
                     <p class="product-description-text">
                         @product.ProductDescription
                     </p>
-
                 </div>
-
             </div>
         }
-
     </div>
-
 </div>
+
 @code {
 
     private List<Product> products = new();
@@ -82,7 +70,8 @@
                 p.ProductName != null &&
                 p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
-    private string GetStockClass(int stock)
+    //determine the status of stock and apply a colour marker
+    private string GetStockColour(int stock)
     {
         if (stock <= 10)
             return "stock-red";
@@ -93,7 +82,8 @@
         return "stock-green";
     }
 
-    private string GetStockLabel(int stock)
+    //determine the status of stock and apply a status
+    private string GetStockStatus(int stock)
     {
         if (stock <= 10)
             return "Low";

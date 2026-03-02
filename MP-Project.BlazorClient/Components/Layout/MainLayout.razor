@@ -1,6 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@inject ThemeService ThemeService
+@implements IDisposable
+@inherits LayoutComponentBase
 
-<div class="app-container">
+<div class="app-container @(ThemeService.CurrentTheme)">
 
     <!-- Sidebar -->
     <div class="sidebar">
@@ -28,3 +30,24 @@
     </div>
 
 </div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnThemeChanged += Refresh;
+    }
+
+    private async void Refresh()
+    {
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= Refresh;
+    }
+}

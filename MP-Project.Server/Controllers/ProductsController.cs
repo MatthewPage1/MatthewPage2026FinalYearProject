@@ -14,6 +14,8 @@ public class ProductsController : ControllerBase
 		_context = context;
 	}
 
+
+	//GET to return all products within the database
 	[HttpGet]
 	public async Task<ActionResult<List<Product>>> GetProducts()
 	{
@@ -21,6 +23,8 @@ public class ProductsController : ControllerBase
 		return await _context.products.ToListAsync();
 	}
 
+
+	//PUT to decrease the stock of a speicfic product and also log the movement of stock
 	[HttpPut("{id}/decrease-stock")]
 	public async Task<IActionResult> DecreaseStock(int id, int quantity)
 	{
@@ -34,7 +38,7 @@ public class ProductsController : ControllerBase
 
 		product.StockCount -= quantity;
 
-		// LOG THE STOCK MOVEMENT
+		//log the stock decrease
 		var movement = new StockMovement
 		{
 			ProductId = product.ProductId,
@@ -50,7 +54,7 @@ public class ProductsController : ControllerBase
 		return Ok(product);
 	}
 
-
+	//PUT to increase the stock of a speicfic product and also log the movement of stock
 	[HttpPut("{id}/increase-stock")]
 	public async Task<IActionResult> IncreaseStock(int id, int quantity)
 	{
@@ -64,12 +68,11 @@ public class ProductsController : ControllerBase
 
 		product.StockCount += quantity;
 
-		// Update availability
+		//update stock decrease
 		if (product.StockCount > 0)
 		{
 			product.Availability = "InStock";
 		}
-
 
 		_context.StockMovements.Add(new StockMovement
 		{
@@ -79,50 +82,53 @@ public class ProductsController : ControllerBase
 			CreatedAt = DateTime.UtcNow
 		});
 
-
 		await _context.SaveChangesAsync();
 
 		return Ok(product);
 	}
-
+	
+	//GET to return best selling, total stock per group, recently ordered and underperforming
 	[HttpGet("dashboard")]
 	public async Task<IActionResult> GetDashboard()
 	{
+		//best sellers by quantity sold
 		var bestSellers = await _context.StockMovements
-			.Where(m => m.ChangeAmount < 0)
-			.GroupBy(m => m.ProductId)
-			.Select(g => new
+			.Where(stockMovement => stockMovement.ChangeAmount < 0)
+			.GroupBy(stockMovement => stockMovement.ProductId)
+			.Select(productGroup => new
 			{
-				ProductId = g.Key,
-				TotalSold = g.Sum(x => -x.ChangeAmount)
+				ProductId = productGroup.Key,
+				TotalSold = productGroup.Sum(stockMovement => -stockMovement.ChangeAmount)
 			})
-			.OrderByDescending(x => x.TotalSold)
+			.OrderByDescending(summary => summary.TotalSold)
 			.Take(5)
 			.Join(_context.products,
-				  g => g.ProductId,
-				  p => p.ProductId,
-				  (g, p) => p)
+				  summary => summary.ProductId,
+				  product => product.ProductId,
+				  (summary, product) => product)
 			.ToListAsync();
 
+		//total stock in each product group
 		var totalStockByGroup = await _context.products
-			.Where(p => p.ProductGroup1 != null)
-			.GroupBy(p => p.ProductGroup1)
-			.Select(g => new
+			.Where(product => product.ProductGroup1 != null)
+			.GroupBy(product => product.ProductGroup1)
+			.Select(productGroup => new
 			{
-				ProductGroup = g.Key,
-				TotalStock = g.Sum(p => p.StockCount)
+				ProductGroup = productGroup.Key,
+				TotalStock = productGroup.Sum(product => product.StockCount)
 			})
-			.OrderByDescending(x => x.TotalStock)
+			.OrderByDescending(groupStock => groupStock.TotalStock)
 			.ToListAsync();
 
+		//recently ordered products
 		var recentlyOrdered = await _context.StockMovements
-			.Where(m => m.ChangeAmount > 0)
-			.OrderByDescending(m => m.CreatedAt)
+			.Where(stockMovement => stockMovement.ChangeAmount > 0)
+			.OrderByDescending(stockMovement => stockMovement.CreatedAt)
 			.Take(5)
 			.Join(_context.products,
-				  m => m.ProductId,
-				  p => p.ProductId,
-				  (m, p) => p)
+				  stockMovement => stockMovement.ProductId,
+				  product => product.ProductId,
+				  (stockMovement, product) => product)
 			.ToListAsync();
 
 		return Ok(new

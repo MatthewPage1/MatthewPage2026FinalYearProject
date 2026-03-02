@@ -1,0 +1,38 @@
+﻿@page "/profile"
+@inject ThemeService ThemeService
+
+<div class="content-card">
+
+    <div class="section-title">
+        Profile
+    </div>
+
+    <div class="profile-section">
+
+        <h5>Theme Settings</h5>
+
+        <div class="theme-toggle">
+
+            <button class="theme-btn @(ThemeService.CurrentTheme == "light" ? "active-theme" : "")"
+                    @onclick="@(() => ChangeTheme("light"))">
+                Light Mode
+            </button>
+
+            <button class="theme-btn @(ThemeService.CurrentTheme == "dark" ? "active-theme" : "")"
+                    @onclick="@(() => ChangeTheme("dark"))">
+                Dark Mode
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+
+    private async Task ChangeTheme(string theme)
+    {
+        await ThemeService.SetTheme(theme);
+    }
+}

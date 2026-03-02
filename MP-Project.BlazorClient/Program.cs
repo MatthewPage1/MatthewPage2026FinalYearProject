@@ -1,10 +1,14 @@
 using MP_Project.BlazorClient.Components;
+using MP_Project.BlazorClient.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
+
+builder.Services.AddSingleton<ThemeService>();
 
 builder.Services.AddHttpClient("API", client =>
 {

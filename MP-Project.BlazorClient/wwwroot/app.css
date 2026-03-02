@@ -314,3 +314,119 @@ body {
         height: 350px;
     }
 }
+
+
+/* ===============================
+   DARK MODE
+================================= */
+.app-container.dark {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+.app-container.dark .content-card {
+    background: #2c2c2c !important;
+}
+
+.app-container.dark .section-title {
+    background: #3a3a3a !important;
+    color: white !important;
+}
+
+.app-container.dark .search-bar-container {
+    background: #3a3a3a !important;
+}
+
+.app-container.dark .inventory-panel {
+    background: #2f2f2f !important;
+    border: 1px solid #444 !important;
+}
+
+.app-container.dark .panel-title {
+    background: #3a3a3a !important;
+    color: white !important;
+}
+
+.app-container.dark .product-row {
+    background: #2c2c2c !important;
+}
+
+.app-container.dark .product-image-box {
+    background: #444 !important;
+}
+
+/* Sidebar */
+.app-container.dark .sidebar {
+background: #081c45;
+}
+
+.app-container.dark .nav-item {
+background-color: rgba(255,255,255,0.1);
+}
+
+.app-container.dark .nav-item:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+/* Profile Page */
+.profile-section {
+    padding: 1rem;
+}
+
+.theme-toggle {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.theme-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    background: #cfcfcf;
+}
+
+    .theme-btn:hover {
+        background: #bcbcbc;
+    }
+
+/* ===============================
+   THEME BUTTON
+================================= */
+
+.theme-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    background: #cfcfcf;
+    transition: all 0.2s ease;
+}
+
+.theme-btn:hover {
+    background: #bcbcbc;
+}
+
+.theme-btn.active-theme {
+    border: 2px solid #0d2b6b;
+    box-shadow: 0 0 0 3px rgba(13, 43, 107, 0.2);
+    background: white;
+}
+
+/* Dark mode version */
+.app-container.dark .theme-btn {
+    background: #3a3a3a;
+    color: white;
+}
+
+    .app-container.dark .theme-btn:hover {
+        background: #4a4a4a;
+    }
+
+    .app-container.dark .theme-btn.active-theme {
+        border: 2px solid #4da3ff;
+        box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.25);
+    }
