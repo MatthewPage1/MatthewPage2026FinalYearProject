@@ -57,12 +57,81 @@
         <div class="modal-container" @onclick:stopPropagation="true">
 
             <div class="modal-header">
-                <h4>@selectedProduct.ProductName</h4>
                 <button class="modal-close" @onclick="CloseModal">✕</button>
             </div>
 
             <div class="modal-body">
-                <!-- EMPTY FOR NOW -->
+
+                <div class="modal-grid">
+
+                    <!-- LEFT SIDE -->
+                    <div class="modal-left">
+
+                        @if (!string.IsNullOrWhiteSpace(selectedProduct?.Image))
+                        {
+                            <img src="@selectedProduct.Image"
+                                 alt="@selectedProduct.ProductName"
+                                 class="modal-image" />
+                        }
+
+                        <div class="barcode-section">
+                            <h5>Product Barcode</h5>
+
+                            <img src="@($"https://barcode.tec-it.com/barcode.ashx?data={selectedProduct.gtin13}&code=EAN13&translate-esc=false")"
+                                 alt="GTIN13 Barcode" />
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="modal-right">
+
+                        <h3>@selectedProduct?.ProductName</h3>
+
+                        <div class="product-detail"><strong>Brand:</strong> @selectedProduct?.Brand</div>
+                        <div class="product-detail"><strong>gtin13:</strong> @selectedProduct?.gtin13</div>
+
+                        <div class="product-detail">
+                            <strong>Cost Price:</strong> £@selectedProduct?.CostPrice
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Selling Price:</strong> £@selectedProduct?.SellingPrice
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Stock:</strong> @selectedProduct?.StockCount
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Reorder Level:</strong> @selectedProduct?.ReorderLevel
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Availability:</strong> @selectedProduct?.Availability
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Group 1:</strong> @selectedProduct?.ProductGroup1
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Group 2:</strong> @selectedProduct?.ProductGroup2
+                        </div>
+
+                        <div class="product-detail">
+                            <strong>Group 3:</strong> @selectedProduct?.ProductGroup3
+                        </div>
+
+                        <div class="product-description">
+                            <strong>Description:</strong>
+                            <p>@selectedProduct?.ProductDescription</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
 
         </div>

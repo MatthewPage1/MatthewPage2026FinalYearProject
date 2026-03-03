@@ -457,23 +457,69 @@ background-color: rgba(255,255,255,0.1);
     box-shadow: 0 15px 40px rgba(0,0,0,0.25);
 }
 
+.modal-grid {
+    display: flex;
+    gap: 30px;
+    height: 100%;
+}
+
+.modal-left {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-right {
+    width: 60%;
+    overflow-y: auto;
+}
+
+.modal-image {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.product-detail {
+    margin-bottom: 8px;
+}
+
+.product-description {
+    margin-top: 15px;
+}
+
+.barcode-section {
+    text-align: center;
+}
+
+.invalid-gtin {
+    color: red;
+}
+
+
 .modal-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    align-items: flex-start;
+    gap: 10px;
 }
+
+    .modal-header h4 {
+        margin: 0;
+        flex: 1;
+        word-break: break-word;
+    }
 
 .modal-close {
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 1.2rem;
+    font-size: 24px;
     cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
 }
 
-.modal-body {
-    min-height: 120px;
-}
 
 /* Dark mode support */
 .app-container.dark .modal-container {
@@ -481,6 +527,6 @@ background-color: rgba(255,255,255,0.1);
     color: white;
 }
 
-.app-container.dark .modal-overlay {
-    background: rgba(0,0,0,0.7);
+.app-container.dark .modal-right {
+    color: white;
 }
