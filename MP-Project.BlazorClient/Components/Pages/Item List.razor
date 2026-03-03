@@ -18,7 +18,8 @@
     <div class="product-list">
         @foreach (var product in FilteredProducts)
         {
-            <div class="product-row">
+            <div class="product-row"
+                @onclick="() => OpenModal(product)">
                 <div class="product-image-box">
                     @if (!string.IsNullOrWhiteSpace(product.Image))
                     {
@@ -50,8 +51,27 @@
     </div>
 </div>
 
+@if (selectedProduct != null)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-container" @onclick:stopPropagation="true">
+
+            <div class="modal-header">
+                <h4>@selectedProduct.ProductName</h4>
+                <button class="modal-close" @onclick="CloseModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- EMPTY FOR NOW -->
+            </div>
+
+        </div>
+    </div>
+}
+
 @code {
 
+    private Product? selectedProduct;
     private List<Product> products = new();
     private string searchText = string.Empty;
 
@@ -94,5 +114,14 @@
         return "Good";
     }
 
+    private void OpenModal(Product product)
+    {
+        selectedProduct = product;
+    }
+
+    private void CloseModal()
+    {
+        selectedProduct = null;
+    }
 
 }
