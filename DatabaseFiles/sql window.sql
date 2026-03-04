@@ -165,5 +165,32 @@ SET ProductName = @name_csv,
 SET GLOBAL local_infile = 1;
 
 truncate table Products;
+SET GLOBAL local_infile = 1;
 SELECT * FROM Products;
 DROP TABLE Products;
+
+
+LOAD DATA LOCAL INFILE 'C:\\Users\\matth\\OneDrive - University of Lincoln\\source\\repos\\MatthewPage2026\\DatabaseFiles\\tesco_groceries_dataset_cutdown_tab_delimited_updated.txt'
+INTO TABLE products
+FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(@name_csv, @gtin13_csv, @price_csv, @availability_csv, @description_csv, @brand_csv, @breadcrumbsgroup1_csv, @breadcrumbsgroup2_csv, @breadcrumbsgroup3_csv, @images_csv)
+SET ProductName = @name_csv,
+	GTIN13 = @gtin13_csv, 
+    CostPrice = @price_csv,
+    SellingPrice = (@price_csv * 1.2),
+    StockCount = (rand() * 100),
+    Availability = @availability_csv,
+	ProductDescription = @description_csv,
+    Brand = @brand_csv,
+    ProductGroup1 = @breadcrumbsgroup1_csv,
+    ProductGroup2 = @breadcrumbsgroup2_csv,
+    ProductGroup3 = @breadcrumbsgroup3_csv,
+	Image =  @images_csv,
+	ReorderLevel = 10;
+
+SELECT * FROM Products;
+SHOW TABLES;
+describe products;
+describe productstest;

@@ -1,64 +1,52 @@
-﻿@page "/weather"
-@attribute [StreamRendering]
+﻿@page "/purchases"
+@using MP_Project.Shared
+@inject IHttpClientFactory ClientFactory
 
-<PageTitle>Weather</PageTitle>
+<div class="content-card">
 
-<h1>Weather</h1>
+    <div class="section-title">
+        Purchases
+    </div>
 
-<p>This component demonstrates showing data.</p>
+    <div class="purchase-table">
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th aria-label="Temperature in Celsius">Temp. (C)</th>
-                <th aria-label="Temperature in Farenheit">Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
+        <div class="purchase-header">
+            <div>Supplier</div>
+            <div>Contact</div>
+            <div>Items</div>
+            <div>Total</div>
+        </div>
+
+        @if (PurchasesData != null)
+        {
+            @foreach (var p in PurchasesData)
             {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
+                <div class="purchase-row">
+                    <div>@p.SupplierName</div>
+                    <div>@p.ContactInfo</div>
+
+                    <div>
+                        @foreach (var item in p.Items)
+                        {
+                            <div>@item.ProductName x @item.Quantity</div>
+                        }
+                    </div>
+
+                    <div>£@p.TotalPrice</div>
+                </div>
             }
-        </tbody>
-    </table>
-}
+        }
+
+    </div>
+
+</div>
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private List<PurchaseDto>? PurchasesData;
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
-    }
-
-    private class WeatherForecast
-    {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        var http = ClientFactory.CreateClient("API");
+        PurchasesData = await http.GetFromJsonAsync<List<PurchaseDto>>("api/SupplierTransactions");
     }
 }

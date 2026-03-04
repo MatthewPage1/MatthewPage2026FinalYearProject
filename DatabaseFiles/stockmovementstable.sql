@@ -15,4 +15,5 @@ CREATE TABLE StockMovements (
         ON DELETE CASCADE
 );
 
-SELECT * FROM StockMovements
+SELECT * FROM StockMovements;
+drop table StockMovements;
