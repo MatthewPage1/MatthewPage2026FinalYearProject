@@ -43,4 +43,29 @@ public class SupplierTransactionsController : ControllerBase
 
 		return purchases;
 	}
+
+	[HttpPost]
+	public async Task<IActionResult> CreatePurchase([FromBody] PurchaseDto purchase)
+	{
+		var transaction = new SupplierTransaction
+		{
+			SupplierID = purchase.SupplierID,
+			TransactionDate = purchase.TransactionDate,
+			TotalPrice = purchase.TotalPrice,
+			Items = purchase.Items.Select(i => new SupplierTransactionItem
+			{
+				ProductId = i.ProductID,
+				Quantity = i.Quantity,
+				CostPrice = i.CostPrice,
+				Total = i.Total
+			}).ToList()
+		};
+
+		_context.SupplierTransactions.Add(transaction);
+
+		await _context.SaveChangesAsync();
+
+		return Ok();
+	}
+
 }
