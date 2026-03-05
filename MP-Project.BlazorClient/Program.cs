@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<ThemeService>();
+builder.Services.AddScoped<SupplierTransactionService>();
 
 builder.Services.AddHttpClient("API", client =>
 {

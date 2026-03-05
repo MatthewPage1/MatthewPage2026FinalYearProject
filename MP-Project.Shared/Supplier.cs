@@ -7,14 +7,13 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace MP_Project.Shared
 {
-	[Table("supplier")]
 	public class Supplier
 	{
-		[Key]
+		public int Quantity { get; set; }
+		public string? CostPrice { get; set; }
+		public string? TotalPrice { get; set; }
+		public string? TransactionDate { get; set; }
 		public int SupplierID { get; set; }
-		public string? Name { get; set; }
-		public string? Phone { get; set; }
-		public string? Email { get; set; }
-		public string? Address { get; set; }
+		public int ProductID { get; set; }
 	}
 }

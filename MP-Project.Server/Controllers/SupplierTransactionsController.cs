@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using MP_Project.Server.Data;
 using MP_Project.Shared;
+using MySqlConnector;
+using Dapper;
 
 namespace MP_Project.Server.Controllers;
 
@@ -10,62 +12,26 @@ namespace MP_Project.Server.Controllers;
 public class SupplierTransactionsController : ControllerBase
 {
 	private readonly AppDbContext _context;
+	private readonly IConfiguration _config;
 
-	public SupplierTransactionsController(AppDbContext context)
+	public SupplierTransactionsController(AppDbContext context, IConfiguration config)
 	{
 		_context = context;
+		_config = config;
 	}
 
-	[HttpGet]
-	public async Task<ActionResult<List<PurchaseDto>>> GetPurchases()
+	[HttpPost("addSupplierTransaction")]
+	public async Task<IActionResult> AddSupplierTransaction([FromBody] Supplier transaction)
 	{
-		var purchases = await _context.SupplierTransactions
-			.Include(t => t.Supplier)
-			.Include(t => t.Items)
-				.ThenInclude(i => i.Product)
-			.Select(t => new PurchaseDto
-			{
-				SupplierTransactionID = t.SupplierTransactionID,
-				SupplierName = t.Supplier!.Name,
-				ContactInfo = $"{t.Supplier.Phone} | {t.Supplier.Email}",
-				Address = t.Supplier.Address,
-				TransactionDate = t.TransactionDate,
-				TotalPrice = t.TotalPrice,
-				Items = t.Items!.Select(i => new PurchaseItemDto
-				{
-					ProductName = i.Product!.ProductName,
-					Quantity = i.Quantity,
-					CostPrice = i.CostPrice,
-					Total = i.Total
-				}).ToList()
-			})
-			.ToListAsync();
+		using var connection = new MySqlConnection(_config.GetConnectionString("DefaultConnection"));
 
-		return purchases;
-	}
+		string sql = @"INSERT INTO suppliertransaction
+                      (Quantity, CostPrice, TotalPrice, TransactionDate, SupplierID, ProductID)
+                      VALUES
+                      (@Quantity, @CostPrice, @TotalPrice, @TransactionDate, @SupplierID, @ProductID)";
 
-	[HttpPost]
-	public async Task<IActionResult> CreatePurchase([FromBody] PurchaseDto purchase)
-	{
-		var transaction = new SupplierTransaction
-		{
-			SupplierID = purchase.SupplierID,
-			TransactionDate = purchase.TransactionDate,
-			TotalPrice = purchase.TotalPrice,
-			Items = purchase.Items.Select(i => new SupplierTransactionItem
-			{
-				ProductId = i.ProductID,
-				Quantity = i.Quantity,
-				CostPrice = i.CostPrice,
-				Total = i.Total
-			}).ToList()
-		};
-
-		_context.SupplierTransactions.Add(transaction);
-
-		await _context.SaveChangesAsync();
+		await connection.ExecuteAsync(sql, transaction);
 
 		return Ok();
 	}
-
 }

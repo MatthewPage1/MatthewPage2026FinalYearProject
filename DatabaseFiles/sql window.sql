@@ -191,6 +191,36 @@ SET ProductName = @name_csv,
 	ReorderLevel = 10;
 
 SELECT * FROM Products;
+SELECT * FROM Supplier;
+SELECT * FROM suppliertransaction;
+
 SHOW TABLES;
 describe products;
 describe productstest;
+
+CREATE TABLE SupplierTransaction (
+    TransactionID INT AUTO_INCREMENT PRIMARY KEY,
+    Quantity INT NOT NULL,
+    CostPrice DECIMAL(10,2) NOT NULL,
+    TotalPrice DECIMAL(10,2) NOT NULL,
+    TransactionDate DATE NOT NULL,
+    SupplierID INT NOT NULL,
+    ProductID INT NOT NULL,
+
+    CONSTRAINT fk_supplier
+        FOREIGN KEY (SupplierID)
+        REFERENCES Supplier(SupplierID),
+
+    CONSTRAINT fk_product
+        FOREIGN KEY (ProductID)
+        REFERENCES Products(ProductID)
+);
+
+SELECT * FROM SupplierTransaction;
+DROP TABLE SupplierTransaction;
+INSERT INTO suppliertransaction
+(Quantity, CostPrice, TotalPrice, TransactionDate, SupplierID, ProductID)
+VALUES
+(10, 1.54, 15.40, '2026-03-04', 1, 14);
+
+SELECT * FROM products;
