@@ -204,6 +204,7 @@ CREATE TABLE SupplierTransaction (
     CostPrice DECIMAL(10,2) NOT NULL,
     TotalPrice DECIMAL(10,2) NOT NULL,
     TransactionDate DATE NOT NULL,
+    DeliveryDate DATE NOT NULL,
     SupplierID INT NOT NULL,
     ProductID INT NOT NULL,
 
@@ -219,8 +220,11 @@ CREATE TABLE SupplierTransaction (
 SELECT * FROM SupplierTransaction;
 DROP TABLE SupplierTransaction;
 INSERT INTO suppliertransaction
-(Quantity, CostPrice, TotalPrice, TransactionDate, SupplierID, ProductID)
+(Quantity, CostPrice, TotalPrice, TransactionDate, DeliveryDate, SupplierID, ProductID)
 VALUES
-(10, 1.54, 15.40, '2026-03-04', 1, 14);
+(10, 1.54, 15.40, '2026-03-04', '2026-03-05', 1, 14);
+
+
+
 
 SELECT * FROM products;

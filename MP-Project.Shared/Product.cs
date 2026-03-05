@@ -17,5 +17,6 @@
 		public decimal CostPrice { get; set; }
 		public decimal SellingPrice { get; set; }
 		public string? Image { get; set; }
+		public int SupplierID { get; set; }
 	}
 }

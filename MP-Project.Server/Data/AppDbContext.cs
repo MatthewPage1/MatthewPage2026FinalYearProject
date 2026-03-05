@@ -13,9 +13,8 @@ namespace MP_Project.Server.Data
 		public DbSet<Product> products { get; set; }
 		public DbSet<StockMovement> StockMovements { get; set; }
 
-		public DbSet<SupplierTransaction> SupplierTransactions { get; set; }
-		public DbSet<SupplierTransactionItem> SupplierTransactionItems { get; set; }
-		public DbSet<Supplier> Suppliers { get; set; }
+		public DbSet<SupplierTransaction> SupplierTransaction { get; set; }
+		public DbSet<SupplierTransaction> Suppliers { get; set; }
 
 	}
 }

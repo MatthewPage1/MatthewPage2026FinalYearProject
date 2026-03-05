@@ -12,7 +12,7 @@ namespace MP_Project.BlazorClient.Services
 			_http = http;
 		}
 
-		public async Task AddSupplierTransaction(Supplier transaction)
+		public async Task AddSupplierTransaction(SupplierTransaction transaction)
 		{
 			var response = await _http.PostAsJsonAsync(
 				"api/SupplierTransactions/addSupplierTransaction",

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @page "/item-list"
 @inject IHttpClientFactory ClientFactory
+@inject NavigationManager Navigation
 @using MP_Project.Shared
 
 <div class="content-card">
@@ -52,7 +53,9 @@
 </div>
 
 @if (selectedProduct != null)
+
 {
+
     <div class="modal-overlay" @onclick="CloseModal">
         <div class="modal-container" @onclick:stopPropagation="true">
 
@@ -68,10 +71,13 @@
                     <div class="modal-left">
 
                         @if (!string.IsNullOrWhiteSpace(selectedProduct?.Image))
+
                         {
+
                             <img src="@selectedProduct.Image"
-                                 alt="@selectedProduct.ProductName"
-                                 class="modal-image" />
+                            alt="@selectedProduct.ProductName"
+                            class="modal-image" />
+
                         }
 
                         <div class="barcode-section">
@@ -127,70 +133,133 @@
                             <strong>Description:</strong>
                             <p>@selectedProduct?.ProductDescription</p>
                         </div>
+                    </div>
+                </div>
+                <div class="purchase-controls">
 
+                    <div class="quantity-control">
+                        <label><strong>Purchase Quantity</strong></label>
+                        <input type="number"
+                               min="1"
+                               @bind="purchaseQuantity"
+                               class="form-control" />
                     </div>
 
-                </div>
+                    <div class="delivery-date-control">
+                        <label><strong>Delivery Date</strong></label>
+                        <input type="date"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               @bind-value="deliveryDate"
+                               @bind-value:event="onchange"
+                               @bind-value:format="yyyy-MM-dd"
+                               class="form-control" />
+                    </div>
 
+                    <button class="btn btn-success purchase-btn"
+                            @onclick="AddPurchaseFromProduct">
+                        Add Purchase
+                    </button>
+
+                </div>
             </div>
 
         </div>
     </div>
 }
 
-@code {
+        @code {
 
-    private Product? selectedProduct;
-    private List<Product> products = new();
-    private string searchText = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var http = ClientFactory.CreateClient("API");
-        var result = await http.GetFromJsonAsync<List<Product>>("api/products");
-        if (result != null)
-            products = result;
-    }
 
-    private IEnumerable<Product> FilteredProducts =>
-        string.IsNullOrWhiteSpace(searchText)
-            ? products
-            : products.Where(p =>
-                p.ProductName != null &&
-                p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        private Product? selectedProduct;
+        private List<Product> products = new();
+        private string searchText = string.Empty;
+        private int purchaseQuantity = 1;
+        private DateTime deliveryDate = DateTime.Today;
 
-    //determine the status of stock and apply a colour marker
-    private string GetStockColour(int stock)
-    {
-        if (stock <= 10)
-            return "stock-red";
+        protected override async Task OnInitializedAsync()
+        {
+            var http = ClientFactory.CreateClient("API");
+            var result = await http.GetFromJsonAsync<List<Product>>("api/products");
+            if (result != null)
+                products = result;
+        }
 
-        if (stock <= 20)
-            return "stock-orange";
+        private IEnumerable<Product> FilteredProducts =>
+            string.IsNullOrWhiteSpace(searchText)
+                ? products
+                : products.Where(p =>
+                    p.ProductName != null &&
+                    p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
-        return "stock-green";
-    }
+        //determine the status of stock and apply a colour marker
+        private string GetStockColour(int stock)
+        {
+            if (stock <= 10)
+                return "stock-red";
 
-    //determine the status of stock and apply a status
-    private string GetStockStatus(int stock)
-    {
-        if (stock <= 10)
-            return "Low";
+            if (stock <= 20)
+                return "stock-orange";
 
-        if (stock <= 20)
-            return "Medium";
+            return "stock-green";
+        }
 
-        return "Good";
-    }
+        //determine the status of stock and apply a status
+        private string GetStockStatus(int stock)
+        {
+            if (stock <= 10)
+                return "Low";
 
-    private void OpenModal(Product product)
-    {
-        selectedProduct = product;
-    }
+            if (stock <= 20)
+                return "Medium";
 
-    private void CloseModal()
-    {
-        selectedProduct = null;
+            return "Good";
+        }
+
+        private void OpenModal(Product product)
+        {
+            selectedProduct = product;
+        }
+
+        private void CloseModal()
+        {
+            selectedProduct = null;
+        }
+
+        private async Task AddPurchaseFromProduct()
+        {
+            if (selectedProduct == null)
+                return;
+
+            var http = ClientFactory.CreateClient("API");
+
+
+
+            var transaction = new SupplierTransaction
+
+            {
+
+                Quantity = purchaseQuantity,
+
+                CostPrice = selectedProduct.CostPrice,
+
+                TotalPrice = purchaseQuantity * selectedProduct.CostPrice,
+
+                TransactionDate = DateTime.Now,
+
+                DeliveryDate = deliveryDate,
+
+                Processed = false,
+
+                SupplierID = selectedProduct.SupplierID,
+
+                ProductID = selectedProduct.ProductId
+
+            };
+
+        await http.PostAsJsonAsync("api/SupplierTransactions/addSupplierTransaction", transaction);
+
+        Navigation.NavigateTo("/purchases");
     }
 
 }

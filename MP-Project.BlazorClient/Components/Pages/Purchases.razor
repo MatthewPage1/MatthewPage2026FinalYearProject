@@ -1,6 +1,6 @@
 ﻿@page "/purchases"
-@using MP_Project.Shared
 @inject IHttpClientFactory ClientFactory
+@using MP_Project.Shared
 
 <div class="content-card">
 
@@ -8,33 +8,34 @@
         Purchases
     </div>
 
-    <div class="purchase-table">
+    <div class="purchase-list">
 
-        <div class="purchase-header">
-            <div>Supplier</div>
-            <div>Contact</div>
-            <div>Items</div>
-            <div>Total</div>
-        </div>
-
-        @if (PurchasesData != null)
+        @foreach (var t in transactions)
         {
-            @foreach (var p in PurchasesData)
-            {
-                <div class="purchase-row">
-                    <div>@p.SupplierName</div>
-                    <div>@p.ContactInfo</div>
+            <div class="purchase-row">
 
-                    <div>
-                        @foreach (var item in p.Items)
-                        {
-                            <div>@item.ProductName x @item.Quantity</div>
-                        }
-                    </div>
+                <span><strong>ID:</strong> @t.TransactionID</span>
 
-                    <div>£@p.TotalPrice</div>
-                </div>
-            }
+                <span><strong>Product:</strong> @t.ProductID</span>
+
+                <span><strong>Supplier:</strong> @t.SupplierID</span>
+
+                <span><strong>Quantity:</strong> @t.Quantity</span>
+
+                <span><strong>Total:</strong> £@t.TotalPrice</span>
+
+                <span><strong>Ordered:</strong> @t.TransactionDate.ToShortDateString()</span>
+
+                <span><strong>Delivery:</strong> @t.DeliveryDate.ToShortDateString()</span>
+
+                <span>
+                    <strong>Status:</strong>
+                    <span class="delivery-status @(t.Processed ? "delivered" : "pending")">
+                        @(t.Processed ? "Delivered" : "Pending")
+                    </span>
+                </span>
+
+            </div>
         }
 
     </div>
@@ -42,11 +43,27 @@
 </div>
 
 @code {
-    private List<PurchaseDto>? PurchasesData;
+
+    private List<SupplierTransaction> transactions = new();
 
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");
-        PurchasesData = await http.GetFromJsonAsync<List<PurchaseDto>>("api/SupplierTransactions");
+
+        //process deliveries first
+        await http.PostAsync("api/SupplierTransactions/processDeliveries", null);
+
+        await LoadTransactions();
     }
+
+    private async Task LoadTransactions()
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        var result = await http.GetFromJsonAsync<List<SupplierTransaction>>("api/suppliertransactions");
+
+        if (result != null)
+            transactions = result;
+    }
+
 }
