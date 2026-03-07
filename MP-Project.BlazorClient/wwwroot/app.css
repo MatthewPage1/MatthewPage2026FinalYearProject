@@ -52,13 +52,13 @@ body {
     transition: all 0.2s ease;
 }
 
-    .nav-item:first-of-type {
-        margin-top: 40px;
-    }
+.nav-item:first-of-type {
+    margin-top: 40px;
+}
 
-    .nav-item:hover {
-        background-color: rgba(255,255,255,0.3);
-    }
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.3);
+}
 
 .bottom-link {
     margin-top: auto;
@@ -121,13 +121,13 @@ body {
     border-radius: 4px;
 }
 
-    .search-bar-container input {
-        width: 100%;
-        padding: 0.6rem;
-        border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-    }
+.search-bar-container input {
+    width: 100%;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+}
 
 /* ===============================
    PRODUCT LIST
@@ -150,10 +150,10 @@ body {
     transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-    .product-row:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    }
+.product-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
 
 .product-image-box {
     width: 220px;
@@ -166,11 +166,11 @@ body {
     justify-content: center;
 }
 
-    .product-image-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+.product-image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 .product-info-box {
     flex: 1;
@@ -178,11 +178,11 @@ body {
     flex-direction: column;
 }
 
-    .product-info-box h5 {
-        margin: 0 0 6px 0;
-        font-weight: bold;
-        font-size: 1.3rem;
-    }
+.product-info-box h5 {
+    margin: 0 0 6px 0;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
 
 .product-meta {
     display: flex;
@@ -505,11 +505,11 @@ background-color: rgba(255,255,255,0.1);
     gap: 10px;
 }
 
-    .modal-header h4 {
-        margin: 0;
-        flex: 1;
-        word-break: break-word;
-    }
+.modal-header h4 {
+    margin: 0;
+    flex: 1;
+    word-break: break-word;
+}
 
 .modal-close {
     background: transparent;
@@ -563,17 +563,132 @@ background-color: rgba(255,255,255,0.1);
 ================================= */
 
 .delivery-status {
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 6px;
     font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
 }
 
-    .delivery-status.pending {
-        background-color: #ffcc00;
-        color: #333;
-    }
+.delivery-status.pending {
+    background-color: #ffcc00;
+    color: #333;
+}
 
-    .delivery-status.delivered {
-        background-color: #4CAF50;
-        color: white;
-    }
+.delivery-status.delivered {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* ===============================
+   PURCHASE PAGE
+================================= */
+
+.purchase-header,
+.purchase-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 1.5fr 0.8fr 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.purchase-header,
+.purchase-row {
+    display: grid;
+    grid-template-columns: 1.2fr /* Supplier */
+    1.6fr /* Contact */
+    1.6fr /* Product */
+    0.8fr /* Total */
+    1fr /* Delivery */
+    1fr /* Status */
+    0.6fr; /* Checked in */
+
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.purchase-header {
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.purchase-row {
+    border-bottom: 1px solid #eee;
+    transition: background 0.15s ease;
+}
+
+.row-action {
+    background: #fff8e1;
+    cursor: pointer;
+}
+
+.row-action:hover {
+    background: #ffeaa7;
+}
+
+.checkin-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+}
+
+.check-true {
+    color: #28a745;
+}
+
+.check-false {
+    color: #dc3545;
+}
+
+.purchase-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* highlighted rows */
+
+.row-action {
+    position: relative;
+}
+
+/* big centered hover message */
+
+.row-action:hover::after {
+    content: "CLICK TO CHECK IN";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #0d2b6b;
+    border-radius: 4px;
+}
+
+
+/*Dark Mode for Rows*/
+
+.app-container.dark .row-action {
+    background: #3a3420;
+}
+
+.app-container.dark .row-action:hover {
+    background: #4a4228;
+}
+
+.app-container.dark .row-action:hover::after {
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+}

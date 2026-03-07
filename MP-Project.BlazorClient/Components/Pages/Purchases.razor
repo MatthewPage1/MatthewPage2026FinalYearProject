@@ -8,31 +8,55 @@
         Purchases
     </div>
 
-    <div class="purchase-list">
+    <div class="search-bar-container">
+        <input type="text"
+               placeholder="Search Supplier..."
+               @bind="searchText"
+               @bind:event="oninput" />
+    </div>
 
-        @foreach (var t in transactions)
+    <div class="purchase-header">
+        <span>Supplier</span>
+        <span>Contact</span>
+        <span>Product</span>
+        <span>Total</span>
+        <span>Delivery</span>
+        <span>Status</span>
+        <span>Checked In</span>
+    </div>
+
+    <div class="purchase-scroll">
+
+        @foreach (var t in FilteredTransactions)
         {
-            <div class="purchase-row">
+            <div class="purchase-row @(t.Processed && !t.CheckedIn ? "row-action" : "")"
+                 @onclick="() => HandleRowClick(t)">
 
-                <span><strong>ID:</strong> @t.TransactionID</span>
+                <span>@t.SupplierName</span>
 
-                <span><strong>Product:</strong> @t.ProductID</span>
+                <span>@t.SupplierEmail<br />@t.SupplierPhone</span>
 
-                <span><strong>Supplier:</strong> @t.SupplierID</span>
+                <span>@t.Quantity x @t.ProductName</span>
 
-                <span><strong>Quantity:</strong> @t.Quantity</span>
+                <span>£@t.TotalPrice</span>
 
-                <span><strong>Total:</strong> £@t.TotalPrice</span>
-
-                <span><strong>Ordered:</strong> @t.TransactionDate.ToShortDateString()</span>
-
-                <span><strong>Delivery:</strong> @t.DeliveryDate.ToShortDateString()</span>
+                <span>@t.DeliveryDate.ToShortDateString()</span>
 
                 <span>
-                    <strong>Status:</strong>
                     <span class="delivery-status @(t.Processed ? "delivered" : "pending")">
                         @(t.Processed ? "Delivered" : "Pending")
                     </span>
+                </span>
+
+                <span class="checkin-indicator">
+                    @if (t.CheckedIn)
+                    {
+                        <span class="check-true">☑</span>
+                    }
+                    else
+                    {
+                        <span class="check-false">☒</span>
+                    }
                 </span>
 
             </div>
@@ -40,17 +64,25 @@
 
     </div>
 
+    <button class="btn btn-success"
+			disabled="@(DeliveriesToCheckIn == 0)"
+            @onclick="CheckInAllDeliveries">
+        @(DeliveriesToCheckIn == 0
+                ? "No Deliveries To Check In"
+                : $"Check In {DeliveriesToCheckIn} {(DeliveriesToCheckIn == 1 ? "Delivery" : "Deliveries")}")
+    </button>
+
 </div>
 
 @code {
 
-    private List<SupplierTransaction> transactions = new();
+private string searchText = "";
+    private List<PurchaseDto> transactions = new();
 
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");
 
-        //process deliveries first
         await http.PostAsync("api/SupplierTransactions/processDeliveries", null);
 
         await LoadTransactions();
@@ -60,10 +92,52 @@
     {
         var http = ClientFactory.CreateClient("API");
 
-        var result = await http.GetFromJsonAsync<List<SupplierTransaction>>("api/suppliertransactions");
+        var result = await http.GetFromJsonAsync<List<PurchaseDto>>("api/suppliertransactions");
 
         if (result != null)
             transactions = result;
     }
+
+    private async Task CheckInSingleDelivery(int transactionId)
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        await http.PostAsJsonAsync(
+            "api/SupplierTransactions/checkInDelivery",
+            transactionId
+        );
+
+        await LoadTransactions();
+    }
+
+    private async Task CheckInAllDeliveries()
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        await http.PostAsync(
+            "api/SupplierTransactions/checkInAllDeliveries",
+            null
+        );
+
+        await LoadTransactions();
+    }
+
+    private IEnumerable<PurchaseDto> FilteredTransactions =>
+        string.IsNullOrWhiteSpace(searchText)
+            ? transactions
+            : transactions.Where(t =>
+                t.SupplierName != null &&
+                t.SupplierName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+    private async Task HandleRowClick(PurchaseDto t)
+    {
+        if (!t.Processed || t.CheckedIn)
+            return;
+
+        await CheckInSingleDelivery(t.TransactionID);
+    }
+
+    private int DeliveriesToCheckIn =>
+    transactions.Count(t => t.Processed && !t.CheckedIn);
 
 }

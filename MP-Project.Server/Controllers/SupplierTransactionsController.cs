@@ -21,10 +21,31 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<List<SupplierTransaction>>> GetTransactions()
+	public async Task<ActionResult<List<PurchaseDto>>> GetTransactions()
 	{
-		var transactions = await _context.SupplierTransaction.ToListAsync();
-		return Ok(transactions);
+		var purchases = await (
+			from Transaction in _context.SupplierTransaction
+			join Products in _context.products
+				on Transaction.ProductID equals Products.ProductId
+			join Supplier in _context.Supplier
+				on Transaction.SupplierID equals Supplier.SupplierID
+			orderby Transaction.TransactionID descending
+			select new PurchaseDto
+			{
+				TransactionID = Transaction.TransactionID,
+				SupplierName = Supplier.Name,
+				SupplierEmail = Supplier.Email,
+				SupplierPhone = Supplier.Phone,
+				ProductName = Products.ProductName,
+				Quantity = Transaction.Quantity,
+				TotalPrice = Transaction.TotalPrice,
+				DeliveryDate = Transaction.DeliveryDate,
+				Processed = Transaction.Processed,
+				CheckedIn = Transaction.CheckedIn
+			}
+		).ToListAsync();
+
+		return Ok(purchases);
 	}
 
 	[HttpPost("addSupplierTransaction")]
@@ -46,7 +67,48 @@ public class SupplierTransactionsController : ControllerBase
 	public async Task<IActionResult> ProcessDeliveries()
 	{
 		var deliveries = await _context.SupplierTransaction
-			.Where(t => t.DeliveryDate <= DateTime.Today && !t.Processed)
+			.Where(t => t.DeliveryDate.Date <= DateTime.Today && !t.Processed)
+			.ToListAsync();
+
+		foreach (var delivery in deliveries)
+		{
+			delivery.Processed = true;
+		}
+
+		await _context.SaveChangesAsync();
+
+		return Ok();
+	}
+
+	[HttpPost("checkInDelivery")]
+	public async Task<IActionResult> CheckInDelivery([FromBody] int transactionId)
+	{
+		var delivery = await _context.SupplierTransaction
+			.FirstOrDefaultAsync(t => t.TransactionID == transactionId);
+
+		if (delivery == null || !delivery.Processed || delivery.CheckedIn)
+			return BadRequest();
+
+		var product = await _context.products
+			.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID);
+
+		if (product != null)
+		{
+			product.StockCount += delivery.Quantity;
+		}
+
+		delivery.CheckedIn = true;
+
+		await _context.SaveChangesAsync();
+
+		return Ok();
+	}
+
+	[HttpPost("checkInAllDeliveries")]
+	public async Task<IActionResult> CheckInAllDeliveries()
+	{
+		var deliveries = await _context.SupplierTransaction
+			.Where(t => t.Processed && !t.CheckedIn)
 			.ToListAsync();
 
 		foreach (var delivery in deliveries)
@@ -57,8 +119,9 @@ public class SupplierTransactionsController : ControllerBase
 			if (product != null)
 			{
 				product.StockCount += delivery.Quantity;
-				delivery.Processed = true;
 			}
+
+			delivery.CheckedIn = true;
 		}
 
 		await _context.SaveChangesAsync();

@@ -14,7 +14,7 @@ namespace MP_Project.Server.Data
 		public DbSet<StockMovement> StockMovements { get; set; }
 
 		public DbSet<SupplierTransaction> SupplierTransaction { get; set; }
-		public DbSet<SupplierTransaction> Suppliers { get; set; }
+		public DbSet<Supplier> Supplier { get; set; }
 
 	}
 }
