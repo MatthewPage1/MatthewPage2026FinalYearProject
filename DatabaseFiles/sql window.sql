@@ -206,6 +206,7 @@ CREATE TABLE SupplierTransaction (
     TransactionDate DATE NOT NULL,
     DeliveryDate DATE NOT NULL,
     Processed BOOLEAN DEFAULT FALSE,
+    CheckedIn BOOLEAN DEFAULT FALSE,
     SupplierID INT NOT NULL,
     ProductID INT NOT NULL,
 
@@ -221,10 +222,14 @@ CREATE TABLE SupplierTransaction (
 SELECT * FROM SupplierTransaction;
 DROP TABLE SupplierTransaction;
 INSERT INTO suppliertransaction
-(Quantity, CostPrice, TotalPrice, TransactionDate, DeliveryDate, Processed, SupplierID, ProductID)
+(Quantity, CostPrice, TotalPrice, TransactionDate, DeliveryDate, Processed, CheckedIn, SupplierID, ProductID)
 VALUES
-(10, 1.54, 15.40, '2026-03-04', '2026-03-05', False, 1, 14);
+(10, 1.54, 15.40, '2026-03-04', '2026-03-07', True, False, 1, 14);
 
+SELECT * FROM supplier;
+SELECT * FROM suppliertransaction;
+
+Drop Table suppliertransaction;
 
 
 
