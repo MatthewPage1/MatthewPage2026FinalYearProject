@@ -1,5 +1,4 @@
-﻿@page "/"
-@page "/item-list"
+﻿@page "/item-list"
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Navigation
 @using MP_Project.Shared
@@ -36,13 +35,15 @@
 
                 <div class="product-info-box">
                     <div class="product-meta">
-                        <span><strong>ID:</strong> @product.ProductId</span>
+                        <span><strong>Name:</strong> @product.ProductName</span>
                         <span>
                             <strong>Quantity:</strong> @product.StockCount
 							<span class="stock-badge @GetStockColour(product.StockCount)">
                                 @GetStockStatus(product.StockCount)
                             </span>
                         </span>
+                        <span><strong>Cost Price:</strong> £@product.CostPrice</span>
+                        <span><strong>Selling Price:</strong> £@product.SellingPrice</span>
                     </div>
 
                     <p class="product-description-text">

@@ -91,7 +91,7 @@
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");
-        var dashboard = await http.GetFromJsonAsync<DashboardDto>("api/products/dashboard");
+        var dashboard = await http.GetFromJsonAsync<DashboardDto>("api/products/inventoryupdates");
 
         if (dashboard != null)
         {

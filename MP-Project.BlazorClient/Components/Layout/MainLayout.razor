@@ -1,29 +1,39 @@
 ﻿@inject ThemeService ThemeService
+@inject IHttpClientFactory ClientFactory
 @implements IDisposable
 @inherits LayoutComponentBase
 
+<AutoRefresh IntervalSeconds="5" OnRefresh="OnInitializedAsync" OnStateChange="StateHasChanged" />
 <div class="app-container @(ThemeService.CurrentTheme)">
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <NavLink href="/" class="nav-item">Dashboard</NavLink>
+        <NavLink href="/dashboard" class="nav-item">Dashboard</NavLink>
         <NavLink href="/item-list" class="nav-item">Item List</NavLink>
         <NavLink href="/inventory-updates" class="nav-item">Inventory Updates</NavLink>
         <NavLink href="/purchases" class="nav-item">Purchases</NavLink>
         <NavLink href="/profile" class="nav-item">Profile</NavLink>
         <NavLink href="/settings" class="nav-item">Settings</NavLink>
 
+        <div class="middle-link">
+            <NavLink href="/DEV" class="nav-item">DEV</NavLink>
+        </div>
         <div class="bottom-link">
-            <NavLink href="/" class="nav-item">Log In / Sign Up</NavLink>
+            <NavLink href="/log-in-sign-up" class="nav-item">Log In / Sign Up</NavLink>
         </div>
     </div>
 
     <!-- Main Area -->
     <div class="main-content">
-        <div class="header">
+        <div class="header-bar">
+            <div class="header">
             Inventory Management System
-        </div>
+            </div>
 
+            <div class="header-money">
+                <span>£@Money.ToString("N2")</span>
+            </div>
+        </div>
         <div class="page-content">
             @Body
         </div>
@@ -49,5 +59,24 @@
     public void Dispose()
     {
         ThemeService.OnThemeChanged -= Refresh;
+    }
+
+    private decimal Money;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        var result = await http.GetFromJsonAsync<FinanceDto>("api/products/finances");
+
+        if (result != null)
+            Money = result.Profit;
+    }
+
+    public class FinanceDto
+    {
+        public decimal Revenue { get; set; }
+        public decimal Costs { get; set; }
+        public decimal Profit { get; set; }
     }
 }

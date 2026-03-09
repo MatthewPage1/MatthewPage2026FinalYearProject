@@ -234,3 +234,14 @@ Drop Table suppliertransaction;
 
 
 SELECT * FROM products;
+
+CREATE TABLE Sales (
+    SaleID INT Auto_Increment PRIMARY KEY,
+    Quantity INT NOT NULL,
+    SellingPrice DECIMAL(10,2) NOT NULL,
+    TotalPrice DECIMAL(10,2) NOT NULL,
+    SaleDate DATETIME NOT NULL,
+	ProductID INT NOT NULL,
+
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);

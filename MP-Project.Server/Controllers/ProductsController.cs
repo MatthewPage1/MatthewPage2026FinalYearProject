@@ -38,6 +38,18 @@ public class ProductsController : ControllerBase
 
 		product.StockCount -= quantity;
 
+		//add to sale table
+		var sale = new Sale
+		{
+			ProductID = product.ProductId,
+			Quantity = quantity,
+			SellingPrice = product.SellingPrice,
+			TotalPrice = product.SellingPrice * quantity,
+			SaleDate = DateTime.UtcNow
+		};
+
+		_context.Sales.Add(sale);
+
 		if (product.StockCount <= product.ReorderLevel)
 		{
 
@@ -92,7 +104,7 @@ public class ProductsController : ControllerBase
 
 		product.StockCount += quantity;
 
-		//update stock decrease
+		//update stock increase
 		if (product.StockCount > 0)
 		{
 			product.Availability = "InStock";
@@ -112,7 +124,7 @@ public class ProductsController : ControllerBase
 	}
 	
 	//GET to return best selling, total stock per group, recently ordered and underperforming
-	[HttpGet("dashboard")]
+	[HttpGet("inventoryupdates")]
 	public async Task<IActionResult> GetDashboard()
 	{
 		//best sellers by quantity sold
@@ -161,6 +173,25 @@ public class ProductsController : ControllerBase
 			TotalStockByGroup = totalStockByGroup,
 			RecentlyOrdered = recentlyOrdered,
 			Underperforming = new List<Product>()
+		});
+	}
+
+	[HttpGet("finances")]
+	public async Task<IActionResult> GetFinances()
+	{
+		var revenue = await _context.Sales
+			.SumAsync(s => (decimal?)s.TotalPrice) ?? 0;
+
+		var costs = await _context.SupplierTransaction
+			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
+
+		var profit = revenue - costs;
+
+		return Ok(new
+		{
+			Revenue = revenue,
+			Costs = costs,
+			Profit = profit
 		});
 	}
 }
