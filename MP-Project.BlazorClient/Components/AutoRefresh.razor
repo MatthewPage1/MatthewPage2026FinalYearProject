@@ -1,0 +1,45 @@
+﻿@implements IDisposable
+
+@code {
+
+    [Parameter] public int IntervalSeconds { get; set; } = 3;
+
+    [Parameter] public Func<Task>? OnRefresh { get; set; }
+
+    [Parameter] public Action? OnStateChange { get; set; }
+
+    private PeriodicTimer? timer;
+    private CancellationTokenSource? cts;
+
+    protected override void OnInitialized()
+    {
+        cts = new CancellationTokenSource();
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(IntervalSeconds));
+
+        _ = RefreshLoop();
+    }
+
+    private async Task RefreshLoop()
+    {
+        try
+        {
+            while (await timer!.WaitForNextTickAsync(cts!.Token))
+            {
+                if (OnRefresh != null)
+                    await OnRefresh();
+
+                if (OnStateChange != null)
+                    await InvokeAsync(OnStateChange);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    public void Dispose()
+    {
+        cts?.Cancel();
+        timer?.Dispose();
+    }
+}

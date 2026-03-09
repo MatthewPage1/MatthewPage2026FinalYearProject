@@ -2,6 +2,8 @@
 @inject IHttpClientFactory ClientFactory
 @using MP_Project.Shared
 
+<AutoRefresh IntervalSeconds="5" OnRefresh="LoadTransactions" OnStateChange="StateHasChanged" />
+
 <div class="content-card">
 
     <div class="section-title">

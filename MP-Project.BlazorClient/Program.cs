@@ -10,6 +10,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<SupplierTransactionService>();
+builder.Services.AddSingleton<SimulationService>();
 
 
 builder.Services.AddHttpClient("API", client =>

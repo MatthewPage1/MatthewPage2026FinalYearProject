@@ -4,6 +4,8 @@
 @inject NavigationManager Navigation
 @using MP_Project.Shared
 
+<AutoRefresh IntervalSeconds="5" OnRefresh="LoadProducts" OnStateChange="StateHasChanged"/>
+
 <div class="content-card">
     <div class="section-title">
         Item List
@@ -261,5 +263,16 @@
 
         Navigation.NavigateTo("/purchases");
     }
+
+    private async Task LoadProducts()
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        var result = await http.GetFromJsonAsync<List<Product>>("api/products");
+
+        if (result != null)
+            products = result;
+    }
+
 
 }

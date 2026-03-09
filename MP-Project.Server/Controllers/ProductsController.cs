@@ -38,6 +38,30 @@ public class ProductsController : ControllerBase
 
 		product.StockCount -= quantity;
 
+		if (product.StockCount <= product.ReorderLevel)
+		{
+
+			var existingPurchase = await _context.SupplierTransaction
+				.AnyAsync(t => t.ProductID == product.ProductId && !t.CheckedIn);
+
+			if (!existingPurchase)
+			{
+				var reorder = new SupplierTransaction
+				{
+					ProductID = product.ProductId,
+					Quantity = product.ReorderLevel * 3,
+					CostPrice = product.CostPrice,
+					TotalPrice = product.CostPrice * product.ReorderLevel * 3,
+					TransactionDate = DateTime.UtcNow,
+					DeliveryDate = DateTime.UtcNow,
+					SupplierID = product.SupplierID,
+					Processed = false,
+					CheckedIn = false
+				};
+				_context.SupplierTransaction.Add(reorder);
+			}
+		}
+
 		//log the stock decrease
 		var movement = new StockMovement
 		{

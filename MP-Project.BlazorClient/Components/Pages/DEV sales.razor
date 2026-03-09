@@ -1,11 +1,20 @@
 ﻿@page "/DEV"
 @using MP_Project.Shared
 @inject IHttpClientFactory ClientFactory
+@inject SimulationService SimulationService
 
 <div class="content-card">
     <div class="section-title">
         Dev Sales Page
     </div>
+
+    <button class="btn btn-success" @onclick="StartSim">
+        Start Simulation
+    </button>
+
+    <button class="btn btn-danger" @onclick="StopSim">
+        Stop Simulation
+    </button>
 
     @foreach (var persona in personas)
     {
@@ -33,4 +42,16 @@
         personas = await http.GetFromJsonAsync<List<Persona>>("api/personas") ?? new();
     }
 
+    private async Task StartSim()
+    {
+        await SimulationService.StartSimulation();
+    }
+
+    private void StopSim()
+    {
+        SimulationService.StopSimulation();
+    }
+
+
 }
+
