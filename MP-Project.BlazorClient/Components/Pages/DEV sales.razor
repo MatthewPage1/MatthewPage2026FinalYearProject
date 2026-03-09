@@ -1,0 +1,36 @@
+﻿@page "/DEV"
+@using MP_Project.Shared
+@inject IHttpClientFactory ClientFactory
+
+<div class="content-card">
+    <div class="section-title">
+        Dev Sales Page
+    </div>
+
+    @foreach (var persona in personas)
+    {
+        <h3>@persona.Name</h3>
+
+        <ul>
+            @foreach (var item in persona.ShoppingList)
+            {
+                <li>
+                    Product: @item.ProductId |
+                    Qty: @item.Quantity
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+
+    List<Persona> personas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = ClientFactory.CreateClient("API");
+        personas = await http.GetFromJsonAsync<List<Persona>>("api/personas") ?? new();
+    }
+
+}

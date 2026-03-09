@@ -11,6 +11,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<SupplierTransactionService>();
 
+
 builder.Services.AddHttpClient("API", client =>
 {
 	client.BaseAddress = new Uri("https://localhost:7190/");
