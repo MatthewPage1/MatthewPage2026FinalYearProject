@@ -245,3 +245,8 @@ CREATE TABLE Sales (
 
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
+
+SELECT * FROM Sales;
+SELECT SUM(TotalPrice) FROM Sales;
+truncate TABLE sales;
+Truncate TABLE suppliertransaction
