@@ -2,14 +2,16 @@
 @inject IHttpClientFactory ClientFactory
 @using MP_Project.Shared
 
+<!--Update screen every 5 seconds to allow finance changes to occur-->
 <AutoRefresh IntervalSeconds="5" OnRefresh="LoadTransactions" OnStateChange="StateHasChanged" />
 
 <div class="content-card">
-
+    <!-- Purchases title-->
     <div class="section-title">
         Purchases
     </div>
 
+    <!-- Search bar-->
     <div class="search-bar-container">
         <input type="text"
                placeholder="Search Supplier..."
@@ -17,6 +19,7 @@
                @bind:event="oninput" />
     </div>
 
+    <!-- Table headers-->
     <div class="purchase-header">
         <span>Supplier</span>
         <span>Contact</span>
@@ -28,7 +31,7 @@
     </div>
 
     <div class="purchase-scroll">
-
+        <!--Table contents-->
         @foreach (var t in FilteredTransactions)
         {
             <div class="purchase-row @(t.Processed && !t.CheckedIn ? "row-action" : "")"
@@ -66,6 +69,7 @@
 
     </div>
 
+    <!-- button to check in all deliveries-->
     <button class="btn btn-success"
 			disabled="@(DeliveriesToCheckIn == 0)"
             @onclick="CheckInAllDeliveries">
@@ -78,7 +82,7 @@
 
 @code {
 
-private string searchText = "";
+    private string searchText = "";
     private List<PurchaseDto> transactions = new();
 
     protected override async Task OnInitializedAsync()
@@ -90,6 +94,7 @@ private string searchText = "";
         await LoadTransactions();
     }
 
+	//load the transactions to display on the page
     private async Task LoadTransactions()
     {
         var http = ClientFactory.CreateClient("API");
@@ -100,6 +105,7 @@ private string searchText = "";
             transactions = result;
     }
 
+	//check in a single delivery when a row is clicked and is not already checked in
     private async Task CheckInSingleDelivery(int transactionId)
     {
         var http = ClientFactory.CreateClient("API");
@@ -112,6 +118,7 @@ private string searchText = "";
         await LoadTransactions();
     }
 
+    //check in all deleveries that have not been checked in yet
     private async Task CheckInAllDeliveries()
     {
         var http = ClientFactory.CreateClient("API");
@@ -124,6 +131,7 @@ private string searchText = "";
         await LoadTransactions();
     }
 
+    //filter transactions based on search
     private IEnumerable<PurchaseDto> FilteredTransactions =>
         string.IsNullOrWhiteSpace(searchText)
             ? transactions
@@ -131,6 +139,7 @@ private string searchText = "";
                 t.SupplierName != null &&
                 t.SupplierName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
+	//run CheckInSignleDelivery if processed but not checked in
     private async Task HandleRowClick(PurchaseDto t)
     {
         if (!t.Processed || t.CheckedIn)

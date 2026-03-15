@@ -3,11 +3,14 @@
 @inject IHttpClientFactory ClientFactory
 @inject SimulationService SimulationService
 
+
 <div class="content-card">
+    <!-- Dev title-->
     <div class="section-title">
         Dev Sales Page
     </div>
 
+    <!--Simulation start / stop buttons-->
     <button class="btn btn-success" @onclick="StartSim">
         Start Simulation
     </button>
@@ -16,6 +19,7 @@
         Stop Simulation
     </button>
 
+    <!--List the product ID's and Quantities of each persona-->
     @foreach (var persona in personas)
     {
         <h3>@persona.Name</h3>
@@ -36,6 +40,7 @@
 
     List<Persona> personas = new();
 
+	//fetch the personas to display on the page
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");

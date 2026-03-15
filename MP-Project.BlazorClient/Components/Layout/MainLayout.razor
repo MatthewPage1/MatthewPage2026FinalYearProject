@@ -6,7 +6,7 @@
 <AutoRefresh IntervalSeconds="5" OnRefresh="OnInitializedAsync" OnStateChange="StateHasChanged" />
 <div class="app-container @(ThemeService.CurrentTheme)">
 
-    <!-- Sidebar -->
+    <!-- Sidebar with buttons for each page -->
     <div class="sidebar">
         <NavLink href="/dashboard" class="nav-item">Dashboard</NavLink>
         <NavLink href="/item-list" class="nav-item">Item List</NavLink>
@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <!-- Main Area -->
+    <!-- Horizontal Bar Top -->
     <div class="main-content">
         <div class="header-bar">
             <div class="header">
@@ -43,11 +43,13 @@
 
 @code {
 
+	//ensure screens are updated when theme changes
     protected override void OnInitialized()
     {
         ThemeService.OnThemeChanged += Refresh;
     }
 
+    //refresh screen to allow theme change
     private async void Refresh()
     {
         await InvokeAsync(() =>
@@ -63,6 +65,7 @@
 
     private decimal Money;
 
+	//fetch finance data on load and every 5 seconds to update the profit display
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");

@@ -1,0 +1,10 @@
+create me two files that will do a mysql database update using update table syntax. The first file should update gtin13 column with the contents of the file's gtin13 rows where productid == the row count of the attached file. Input file is tab de-limited, please use the 2nd column as GTIN13, and always take 13 chars.
+
+
+With this file create me a SQL update script that takes every image in the image column and does update products for the image with where clause == the row number and is named productID
+
+
+Open foods
+Tesco
+Sainsbury
+amazon

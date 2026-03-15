@@ -1,6 +1,3 @@
-/* ===============================
-   GLOBAL RESET
-================================= */
 html, body {
     margin: 0;
     padding: 0;
@@ -77,6 +74,10 @@ body {
     flex-direction: column;
 }
 
+/* ===============================
+   INVENTORY MANAGEMENT HEADER
+================================= */
+
 .header-bar {
     position: relative;
     background: #0d2b6b;
@@ -100,7 +101,7 @@ body {
     transform: translateY(-50%);
     font-weight: bold;
     color: white;
-    font-size: 1.75rem;
+    font-size: 2.5rem;
 }
 
 .page-content {
@@ -316,27 +317,6 @@ body {
 }
 
 /* ===============================
-   RESPONSIVE
-================================= */
-
-@media (max-width: 1000px) {
-    .inventory-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .inventory-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .inventory-panel {
-        height: 350px;
-    }
-}
-
-
-/* ===============================
    DARK MODE
 ================================= */
 .app-container.dark {
@@ -413,7 +393,7 @@ background-color: rgba(255,255,255,0.1);
     }
 
 /* ===============================
-   THEME BUTTON
+   PROFILE PAGE THEME BUTTON
 ================================= */
 
 .theme-btn {
@@ -602,7 +582,7 @@ background-color: rgba(255,255,255,0.1);
 }
 
 /* ===============================
-   PURCHASE PAGE
+   PURCHASES PAGE
 ================================= */
 
 .purchase-header,
