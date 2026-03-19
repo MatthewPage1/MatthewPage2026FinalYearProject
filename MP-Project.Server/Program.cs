@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MP_Project.BlazorClient.Services;
 using MP_Project.Server.Data;
+using MP_Project.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,14 +20,19 @@ builder.Services.AddScoped(sp => new HttpClient
 	BaseAddress = new Uri("https://localhost:7190/")
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDistributedMemoryCache();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseMySql(
-		connectionString,
-		ServerVersion.AutoDetect(connectionString)
-	)
-);
+builder.Services.AddSession(options =>
+{
+	options.IdleTimeout = TimeSpan.FromMinutes(30);
+	options.Cookie.HttpOnly = true;
+	options.Cookie.IsEssential = true;
+});
+
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddDbContext<AppDbContext>();
 
 builder.Services.AddCors(options =>
 {
@@ -52,6 +58,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowClient");
+
+app.UseSession();
+
+app.UseMiddleware<ConnectionMiddleware>();
 
 app.UseAuthorization();
 

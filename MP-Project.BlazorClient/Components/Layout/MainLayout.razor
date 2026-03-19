@@ -1,4 +1,10 @@
-﻿@inject ThemeService ThemeService
+﻿@using System;
+@using System.Net.Http;
+@using System.Text;
+@using System.Text.Json;
+@using System.Threading.Tasks;
+
+@inject ThemeService ThemeService
 @inject IHttpClientFactory ClientFactory
 @implements IDisposable
 @inherits LayoutComponentBase
@@ -42,8 +48,8 @@
 </div>
 
 @code {
-
-	//ensure screens are updated when theme changes
+    
+    //ensure screens are updated when theme changes
     protected override void OnInitialized()
     {
         ThemeService.OnThemeChanged += Refresh;
@@ -65,11 +71,34 @@
 
     private decimal Money;
 
-	//fetch finance data on load and every 5 seconds to update the profit display
+    //fetch finance data on load and every 5 seconds to update the profit display
     protected override async Task OnInitializedAsync()
     {
+	// login to database to allow finance data to be accessed, this is required as the API is protected by authentication and requires a JWT token to access data, this token is obtained by logging in with the below credentials and is stored in the HttpClient for future requests
         var http = ClientFactory.CreateClient("API");
 
+        var payload = new
+        {
+           username = "MatthewPage",
+           password = "FinalYearProjectHome1$"
+
+           // username = "Test1",
+           // password = "Test1Password1$"
+
+        };
+        
+        
+        var response = await http.PostAsJsonAsync("https://localhost:7190/api/auth/login", payload);
+        var responseString = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(response.StatusCode);
+        Console.WriteLine(responseString);
+        
+        
+        // remember if not 200 I need to show a BAD respoonse on logon and not proceed
+        //if (response.StatusCode != 200)
+
+        //
+        
         var result = await http.GetFromJsonAsync<FinanceDto>("api/products/finances");
 
         if (result != null)

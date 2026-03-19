@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
 
+builder.Services.AddScoped<ConnectionService>();
+
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<SupplierTransactionService>();
 builder.Services.AddSingleton<SimulationService>();
