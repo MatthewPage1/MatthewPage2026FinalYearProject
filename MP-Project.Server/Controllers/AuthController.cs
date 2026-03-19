@@ -49,6 +49,7 @@ namespace MP_Project.Server.Controllers
 		[HttpPost("logout")]
 		public IActionResult Logout()
 		{
+			MySqlConnection.ClearAllPools();
 			HttpContext.Session.Clear();
 
 			return Ok(new
