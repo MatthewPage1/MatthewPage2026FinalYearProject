@@ -5,13 +5,35 @@
 
 
 <div class="content-card">
-    <!-- Dev title-->
     <div class="section-title">
         Dev Sales Page
     </div>
 
-    <!--Simulation start / stop buttons-->
-    <button class="btn btn-success" @onclick="StartSim">
+    <!-- NEW: Simulation settings -->
+    <div class="sim-controls">
+
+        <div class="input-group">
+            <label>Customers per Day</label>
+            <input type="number" min="1" @bind="CustomersPerDay" />
+
+        </div>
+
+        <div class="input-group">
+            <label>Day Duration (seconds)</label>
+            <input type="number" min="1" @bind="DayDurationSeconds" />
+        </div>
+
+        <div class="input-group">
+            <label>Number of Days </label>
+            <input type="number" min="1" @bind="numDays" />
+        </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <button class="btn btn-success"
+            @onclick="StartSimulation"
+            disabled="@SimulationService.IsRunning">
         Start Simulation
     </button>
 
@@ -37,26 +59,41 @@
 </div>
 
 @code {
+	int numDays = 1; 
+    int CustomersPerDay = 1;
+    int DayDurationSeconds = 10;
 
     List<Persona> personas = new();
 
-	//fetch the personas to display on the page
     protected override async Task OnInitializedAsync()
     {
         var http = ClientFactory.CreateClient("API");
         personas = await http.GetFromJsonAsync<List<Persona>>("api/personas") ?? new();
     }
 
-    private async Task StartSim()
+    private async Task StartSimulation()
     {
-        await SimulationService.StartSimulation();
+        SimulationService.Stop();
+        var http = ClientFactory.CreateClient("API");
+
+        personas = await http.GetFromJsonAsync<List<Persona>>("api/personas") ?? new();
+        var products = await http.GetFromJsonAsync<List<Product>>("api/products");
+
+        Console.WriteLine($"Personas: {personas?.Count}");
+        Console.WriteLine($"Products: {products?.Count}");
+
+        await SimulationService.RunSimulationAsync(
+            days: numDays,
+            customersPerDay: CustomersPerDay,
+            secondsPerDay: DayDurationSeconds,
+            personas: personas!,
+            products: products!
+        );
     }
 
     private void StopSim()
     {
-        SimulationService.StopSimulation();
+        SimulationService.Stop();
     }
-
-
 }
 
