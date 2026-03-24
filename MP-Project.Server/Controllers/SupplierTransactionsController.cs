@@ -129,5 +129,15 @@ public class SupplierTransactionsController : ControllerBase
 		return Ok();
 	}
 
+	[HttpGet("delivery-cost-today")]
+	public async Task<ActionResult<decimal>> GetDeliveryCostToday()
+	{
+		var totalCost = await _context.SupplierTransaction
+			.Where(t => t.CheckedIn && t.DeliveryDate.Date == DateTime.Today)
+			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
+
+		return Ok(totalCost);
+	}
+
 
 }

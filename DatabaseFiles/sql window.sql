@@ -233,6 +233,7 @@ Drop Table suppliertransaction;
 
 
 
+
 SELECT * FROM products;
 
 CREATE TABLE Sales (
@@ -247,6 +248,26 @@ CREATE TABLE Sales (
 );
 
 SELECT * FROM Sales;
+
 SELECT SUM(TotalPrice) FROM Sales;
 truncate TABLE sales;
-Truncate TABLE suppliertransaction
+truncate TABLE suppliertransaction;
+
+
+CREATE TABLE SimulationHistory (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Day INT NOT NULL,
+    Balance DECIMAL(10,2) NOT NULL,
+    Revenue DECIMAL(10,2) DEFAULT 0,
+    Costs DECIMAL(10,2) DEFAULT 0,
+    Profit DECIMAL(10,2) GENERATED ALWAYS AS (Revenue - Costs) STORED,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE SimulationHistory
+ADD UNIQUE (Day);
+
+SELECT * FROM SimulationHistory;
+Truncate Table SimulationHistory;
+Truncate Table SupplierTransaction;
+Truncate Table Sales;

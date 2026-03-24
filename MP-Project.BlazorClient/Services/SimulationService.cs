@@ -1,9 +1,11 @@
 ﻿using System.Text.Json;
+using System.Transactions;
 using MP_Project.Shared;
+using static System.Net.WebRequestMethods;
 
 public class SimulationService
 {
-	private readonly IHttpClientFactory _factory;
+	private readonly IHttpClientFactory ClientFactory;
 	private readonly Random _rand = new();
 	private CancellationTokenSource? _cts;
 
@@ -12,7 +14,7 @@ public class SimulationService
 
 	public SimulationService(IHttpClientFactory factory)
 	{
-		_factory = factory;
+		ClientFactory = factory;
 	}
 
 	public async Task RunSimulationAsync(
@@ -43,11 +45,24 @@ public class SimulationService
 			Console.WriteLine($"Personas inside sim: {personas.Count}");
 			Console.WriteLine($"Products inside sim: {products?.Count}");
 
-			var http = _factory.CreateClient("API");
-			Console.WriteLine($"BaseAddress: {http.BaseAddress}");
+			var http = ClientFactory.CreateClient("API");
+			var history = await http.GetFromJsonAsync<List<SimulationHistory>>(
+				"api/simulation/history"
+			);
+
+			if (history != null && history.Any())
+			{
+				currentDay = history.Max(x => x.Day);
+				currentBalance = history.OrderBy(x => x.Day).Last().Balance;
+
+				Console.WriteLine($"RESUMING FROM DAY {currentDay} | Balance: {currentBalance}");
+			}
 
 			for (int day = 1; day <= days; day++)
 			{
+				decimal dailyRevenue = 0;
+				decimal dailyCosts = 0;
+
 				int delayPerCustomer = customersPerDay > 0
 					? (secondsPerDay * 1000) / customersPerDay
 					: 1000;
@@ -67,6 +82,8 @@ public class SimulationService
 
 					foreach (var sale in sales)
 					{
+						dailyRevenue += sale.TotalPrice;
+
 						try
 						{
 							var url = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}";
@@ -88,6 +105,13 @@ public class SimulationService
 					}
 					await Task.Delay(delayPerCustomer, _cts.Token);
 				}
+				var deliveryCost = await http.GetFromJsonAsync<decimal>(
+					"api/suppliertransactions/delivery-cost-today"
+				);
+
+				dailyCosts += deliveryCost;
+
+				await RecordDayAsync(dailyRevenue, dailyCosts);
 			}
 		}
 		catch (Exception ex)
@@ -159,4 +183,39 @@ public class SimulationService
 
 		return sales;
 	}
+
+	private int currentDay = 0;
+	private decimal currentBalance = 1000;
+
+	private async Task RecordDayAsync(decimal revenue, decimal costs)
+	{
+		currentDay++;
+		Console.WriteLine($"RECORDING DAY {currentDay} | Balance: {currentBalance}");
+
+		currentBalance += (revenue - costs);
+
+		var record = new SimulationHistory
+		{
+			Day = currentDay,
+			Balance = currentBalance,
+			Revenue = revenue,
+			Costs = costs,
+			Timestamp = DateTime.Now
+		};
+
+		var http = ClientFactory.CreateClient("API");
+		var response = await http.PostAsJsonAsync(
+		"api/simulation/history", 
+		record
+		);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"POST FAILED: {error}");
+			throw new Exception(error);
+		}
+
+	}
+
 }

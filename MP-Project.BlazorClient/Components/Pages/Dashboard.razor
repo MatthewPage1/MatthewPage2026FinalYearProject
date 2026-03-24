@@ -1,14 +1,77 @@
-﻿@page "/"   
+﻿@page "/"
 @page "/dashboard"
+
+@inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JS
 
 <div class="content-card">
 
-    <!-- Dashboard title-->
+    <!-- Dashboard title -->
     <div class="section-title">
         Dashboard
     </div>
+
+    <!-- Graph -->
+    <div id="moneyChart" style="height:400px;"></div>
+
 </div>
 
 @code {
+    private List<int> days = new();
+    private List<decimal> money = new();
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadData();
+            await RenderChart();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        var http = ClientFactory.CreateClient("API");
+        var history = await http.GetFromJsonAsync<List<SimulationHistory>>("api/simulation/history");
+
+        if (history != null && history.Any())
+        {
+            days = history.Select(x => x.Day).ToList();
+            money = history.Select(x => x.Balance).ToList();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        var data = new[]
+        {
+            new
+            {
+                x = days,
+                y = money,
+                type = "scatter",
+                mode = "lines+markers",
+                name = "Balance"
+            }
+        };
+
+        var layout = new
+        {
+            title = "Money Over Time",
+            xaxis = new { title = "Day" },
+            yaxis = new { title = "Balance (£)" }
+        };
+
+        await JS.InvokeVoidAsync("Plotly.newPlot", "moneyChart", data, layout);
+    }
+
+    public class SimulationHistory
+    {
+        public int Id { get; set; }
+        public int Day { get; set; }
+        public decimal Balance { get; set; }
+        public decimal Revenue { get; set; }
+        public decimal Costs { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
 }
