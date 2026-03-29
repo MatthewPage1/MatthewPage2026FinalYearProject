@@ -218,5 +218,15 @@
                 "note": "peanut butter"
             }
         ]
+    },
+    {
+        "Name": "test",
+        "ShoppingList": [
+            {
+                "ProductId": 1,
+                "Quantity": 1,
+                "note": "birds eye pancakes"
+            }
+        ]
     }
 ]

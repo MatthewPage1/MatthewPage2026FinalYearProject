@@ -74,8 +74,10 @@
     //fetch finance data on load and every 5 seconds to update the profit display
     protected override async Task OnInitializedAsync()
     {
-	// login to database to allow finance data to be accessed, this is required as the API is protected by authentication and requires a JWT token to access data, this token is obtained by logging in with the below credentials and is stored in the HttpClient for future requests
-        var http = ClientFactory.CreateClient("API");
+
+        // TO BE UPDATED WITH A database table based login
+        /*
+    	// login to database to allow finance data to be accessed, this is required as the API is protected by authentication and requires a JWT token to access data, this token is obtained by logging in with the below credentials and is stored in the HttpClient for future requests
 
         var payload = new
         {
@@ -96,9 +98,11 @@
         
         // remember if not 200 I need to show a BAD respoonse on logon and not proceed
         //if (response.StatusCode != 200)
-
-        //
+        */
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        var http = ClientFactory.CreateClient("API");
+
         var result = await http.GetFromJsonAsync<FinanceDto>("api/products/finances");
 
         if (result != null)

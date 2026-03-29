@@ -130,14 +130,16 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpGet("delivery-cost-today")]
-	public async Task<ActionResult<decimal>> GetDeliveryCostToday()
-	{
+	public async Task<ActionResult<decimal>> GetDeliveryCostToday(int day)
+	{	
+
+		//Console.WriteLine("Day number :", day);
+		Console.WriteLine($"Day number: {day}");
+
 		var totalCost = await _context.SupplierTransaction
-			.Where(t => t.CheckedIn && t.DeliveryDate.Date == DateTime.Today)
+			.Where(t => t.CheckedIn && t.DeliveryDate.Date == DateTime.Today.AddDays(day))
 			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
 
 		return Ok(totalCost);
 	}
-
-
 }

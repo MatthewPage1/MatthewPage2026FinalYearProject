@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using MP_Project.BlazorClient.Services;
 using MP_Project.Server.Data;
-using MP_Project.Server.Middleware;
+///////////////////////////////////////////
+//using MP_Project.Server.Middleware;
+///////////////////////////////////////////
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +34,15 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddDbContext<AppDbContext>();
+///////////////////////////////////////////////////////////////
+// builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+	var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+	options.UseMySql(conn, ServerVersion.AutoDetect(conn));
+});
+///////////////////////////////////////////////////////////////
+///
 
 builder.Services.AddCors(options =>
 {
@@ -61,7 +71,9 @@ app.UseCors("AllowClient");
 
 app.UseSession();
 
-app.UseMiddleware<ConnectionMiddleware>();
+// REMOVE dynamic connection string middleware 
+//app.UseMiddleware<ConnectionMiddleware>();
+////////////////////////////////////////////////////
 
 app.UseAuthorization();
 

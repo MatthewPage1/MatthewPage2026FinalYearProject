@@ -12,8 +12,12 @@ namespace MP_Project.Server.Controllers
 		[HttpPost("login")]
 		public IActionResult Login([FromBody] MP_Project.Shared.LoginRequest request)
 		{
-			try
-			{
+			
+			// COMMENTED OUT OLD DYNAMIC LOGIN - "TO BE REPLACED
+
+				try
+				{
+				/*	
 				var builder = new MySqlConnectionStringBuilder
 				{
 					Server = "localhost",             
@@ -30,11 +34,20 @@ namespace MP_Project.Server.Controllers
 
 				HttpContext.Session.SetString("ConnString", connString);
 
+
 				return Ok(new
 				{
 					success = true,
 					connection = connString
 				});
+				*/
+
+				return Unauthorized(new
+				{
+					success = false,
+					message = "Invalid login"
+				});
+
 			}
 			catch
 			{
@@ -44,20 +57,25 @@ namespace MP_Project.Server.Controllers
 					message = "Invalid login"
 				});
 			}
-		}
+
+	}
 
 		[HttpPost("logout")]
 		public IActionResult Logout()
 		{
+
+			/* Commented out as to replace with a different loggin system
 			MySqlConnection.ClearAllPools();
 			HttpContext.Session.Clear();
 
+			*/
 			return Ok(new
 			{
 				success = true,
 				message = "Logged out"
 			});
-		}
 
+		}
+		
 	}
 }

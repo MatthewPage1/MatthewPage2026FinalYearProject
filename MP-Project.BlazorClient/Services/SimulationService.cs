@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
 using System.Transactions;
+using Microsoft.AspNetCore.WebUtilities;
 using MP_Project.Shared;
 using static System.Net.WebRequestMethods;
 
@@ -74,8 +76,8 @@ public class SimulationService
 					{
 						return;
 					}
-					var persona = personas[_rand.Next(personas.Count)];
-
+					var persona = personas[3];//[_rand.Next(personas.Count)];
+					Console.WriteLine($"Persona: {persona.Name}");
 					var sales = GenerateSales(persona, products);
 
 					Sales.AddRange(sales);
@@ -86,11 +88,11 @@ public class SimulationService
 
 						try
 						{
-							var url = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}";
+							var url1 = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}";
 
-							Console.WriteLine($"CALLING: {url}");
+							Console.WriteLine($"CALLING: {url1}");
 
-							var response = await http.PutAsync(url, null);
+							var response = await http.PutAsync(url1, null);
 
 
 							if (!response.IsSuccessStatusCode)
@@ -105,10 +107,22 @@ public class SimulationService
 					}
 					await Task.Delay(delayPerCustomer, _cts.Token);
 				}
-				var deliveryCost = await http.GetFromJsonAsync<decimal>(
-					"api/suppliertransactions/delivery-cost-today"
+
+				var query = new Dictionary<string, string?>()
+				{
+					["day"] = day.ToString()
+				};
+
+				var url = QueryHelpers.AddQueryString(
+					"api/suppliertransactions/delivery-cost-today",
+					query
 				);
 
+				Console.WriteLine($"day value: {day}");
+				Console.WriteLine($"Query = {query}");
+				Console.WriteLine($"URL = {url}");
+
+				var deliveryCost = await http.GetFromJsonAsync<decimal>(url);
 				dailyCosts += deliveryCost;
 
 				await RecordDayAsync(dailyRevenue, dailyCosts);
@@ -185,7 +199,7 @@ public class SimulationService
 	}
 
 	private int currentDay = 0;
-	private decimal currentBalance = 1000;
+	private decimal currentBalance = 0;
 
 	private async Task RecordDayAsync(decimal revenue, decimal costs)
 	{
