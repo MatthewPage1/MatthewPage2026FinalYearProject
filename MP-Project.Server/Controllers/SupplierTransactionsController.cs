@@ -135,9 +135,13 @@ public class SupplierTransactionsController : ControllerBase
 
 		//Console.WriteLine("Day number :", day);
 		Console.WriteLine($"Day number: {day}");
+		var dToday = DateTime.Today.AddDays(day);
+		Console.WriteLine($"Real date is : {DateTime.Today}");
+		Console.WriteLine($"Simulated date is : {dToday}");
+
 
 		var totalCost = await _context.SupplierTransaction
-			.Where(t => t.CheckedIn && t.DeliveryDate.Date == DateTime.Today.AddDays(day))
+			.Where(t => t.CheckedIn && t.DeliveryDate.Date == dToday)
 			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
 
 		return Ok(totalCost);
