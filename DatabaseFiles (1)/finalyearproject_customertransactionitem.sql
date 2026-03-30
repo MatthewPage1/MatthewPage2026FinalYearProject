@@ -18,38 +18,28 @@ USE `finalyearproject`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `productstest`
+-- Table structure for table `customertransactionitem`
 --
 
-DROP TABLE IF EXISTS `productstest`;
+DROP TABLE IF EXISTS `customertransactionitem`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `productstest` (
-  `ProductID` int NOT NULL AUTO_INCREMENT,
-  `ProductName` varchar(45) DEFAULT NULL,
-  `GTIN13` varchar(45) DEFAULT NULL,
-  `CostPrice` decimal(10,2) DEFAULT NULL,
-  `SellingPrice` decimal(10,2) DEFAULT NULL,
-  `StockCount` int DEFAULT NULL,
-  `Availability` varchar(45) DEFAULT NULL,
-  `ProductDescription` varchar(256) DEFAULT NULL,
-  `Brand` varchar(45) DEFAULT NULL,
-  `ProductGroup1` varchar(45) DEFAULT NULL,
-  `ProductGroup2` varchar(45) DEFAULT NULL,
-  `ProductGroup3` varchar(45) DEFAULT NULL,
-  `ReorderLevel` int DEFAULT NULL,
-  PRIMARY KEY (`ProductID`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `customertransactionitem` (
+  `CustomerTransactionItemID` int NOT NULL,
+  `Quantity` int DEFAULT NULL,
+  `Price` decimal(10,2) DEFAULT NULL,
+  `Total` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`CustomerTransactionItemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `productstest`
+-- Dumping data for table `customertransactionitem`
 --
 
-LOCK TABLES `productstest` WRITE;
-/*!40000 ALTER TABLE `productstest` DISABLE KEYS */;
-INSERT INTO `productstest` VALUES (1,'TestName','19247103587',10.00,50.00,10,NULL,NULL,NULL,NULL,NULL,NULL,3);
-/*!40000 ALTER TABLE `productstest` ENABLE KEYS */;
+LOCK TABLES `customertransactionitem` WRITE;
+/*!40000 ALTER TABLE `customertransactionitem` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customertransactionitem` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -61,4 +51,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-15 16:29:32
+-- Dump completed on 2026-03-30 21:40:12

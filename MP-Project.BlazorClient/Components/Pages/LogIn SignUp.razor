@@ -1,12 +1,77 @@
-﻿@page "/log-in-sign-up"
+﻿@page "/log-in"
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject IHttpClientFactory ClientFactory
 
 <div class="content-card">
 
     <div class="section-title">
-		Log In / Sign Up Page
+        Login Page
     </div>
+
+    <div class="form-group">
+        <label>User ID</label>
+        <input @bind="_userId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" @bind="_password" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary mt-2" @onclick="HandleLogin">
+        Logon
+    </button>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="mt-2 text-danger">@_message</div>
+    }
+
 </div>
 
 @code {
+    private string _userId = "";
+    private string _password = "";
+    private string? _message;
 
+    private async Task HandleLogin()
+    {
+        _message = null;
+
+        var login = new
+        {
+            Username = _userId,
+            Password = _password
+        };
+
+        var http = ClientFactory.CreateClient("API");
+        var response = await http.PostAsJsonAsync(
+            "api/auth/login",
+            login
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            _message = "Login successful";
+			Console.WriteLine($"Login successful for user ID: {result?.CurrentUserId}");
+            Auth.Login(result.CurrentUserId);
+
+        }
+        else
+        {
+            _message = "Invalid login";
+        }
+    }
+
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+
+    public class LoginResponse
+    {
+        public bool Success { get; set; }
+        public int CurrentUserId { get; set; }
+        public string Message { get; set; } = "";
+    }
 }

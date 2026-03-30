@@ -3,51 +3,59 @@
 @using System.Text;
 @using System.Text.Json;
 @using System.Threading.Tasks;
-
+@inject NavigationManager Nav
 @inject ThemeService ThemeService
+@inject AuthService AuthService
 @inject SimulationService SimulationService
 @inject IHttpClientFactory ClientFactory
 @implements IDisposable
 @inherits LayoutComponentBase
 
-<AutoRefresh IntervalSeconds="5" OnRefresh="RefreshMoney" OnStateChange="StateHasChanged" />
 
-<div class="app-container @(ThemeService.CurrentTheme)">
+@if (!AuthService.IsLoggedIn && !Nav.Uri.Contains("/log-in"))
+{
+    Nav.NavigateTo("/log-in", true);
+}
+else
+{
+    <AutoRefresh IntervalSeconds="5" OnRefresh="RefreshMoney" OnStateChange="StateHasChanged" />
 
-    <div class="sidebar">
-        <NavLink href="/dashboard" class="nav-item">Dashboard</NavLink>
-        <NavLink href="/item-list" class="nav-item">Item List</NavLink>
-        <NavLink href="/inventory-updates" class="nav-item">Inventory Updates</NavLink>
-        <NavLink href="/purchases" class="nav-item">Purchases</NavLink>
-        <NavLink href="/profile" class="nav-item">Profile</NavLink>
-        <NavLink href="/settings" class="nav-item">Settings</NavLink>
+    <div class="app-container @(ThemeService.CurrentTheme)">
 
-        <div class="middle-link">
-            <NavLink href="/DEV" class="nav-item">DEV</NavLink>
-        </div>
-        <div class="bottom-link">
-            <NavLink href="/log-in-sign-up" class="nav-item">Log In / Sign Up</NavLink>
-        </div>
-    </div>
+        <div class="sidebar">
+            <NavLink href="/dashboard" class="nav-item">Dashboard</NavLink>
+            <NavLink href="/item-list" class="nav-item">Item List</NavLink>
+            <NavLink href="/inventory-updates" class="nav-item">Inventory Updates</NavLink>
+            <NavLink href="/purchases" class="nav-item">Purchases</NavLink>
+            <NavLink href="/profile" class="nav-item">Profile</NavLink>
+            <NavLink href="/settings" class="nav-item">Settings</NavLink>
 
-    <div class="main-content">
-        <div class="header-bar">
-            <div class="header">
-                Inventory Management System
+            <div class="middle-link">
+                <NavLink href="/DEV" class="nav-item">DEV</NavLink>
             </div>
-
-            <div class="header-money">
-                <span>£@Money.ToString("N2")</span>
+            <div class="bottom-link">
+                <NavLink href="/log-in" class="nav-item">Log In / Sign Up</NavLink>
             </div>
         </div>
 
-        <div class="page-content">
-            @Body
+        <div class="main-content">
+            <div class="header-bar">
+                <div class="header">
+                    Inventory Management System
+                </div>
+
+                <div class="header-money">
+                    <span>£@Money.ToString("N2")</span>
+                </div>
+            </div>
+
+            <div class="page-content">
+                @Body
+            </div>
         </div>
+
     </div>
-
-</div>
-
+}
 @code {
 
     protected override void OnInitialized()
@@ -75,32 +83,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        // TO BE UPDATED WITH A database table based login
-        /*
-    	// login to database to allow finance data to be accessed, this is required as the API is protected by authentication and requires a JWT token to access data, this token is obtained by logging in with the below credentials and is stored in the HttpClient for future requests
-
-        var payload = new
-        {
-           username = "MatthewPage",
-           password = "FinalYearProjectHome1$"
-
-           // username = "Test1",
-           // password = "Test1Password1$"
-
-        };
-
-
-        var response = await http.PostAsJsonAsync("https://localhost:7190/api/auth/login", payload);
-        var responseString = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(response.StatusCode);
-        Console.WriteLine(responseString);
-
-
-        // remember if not 200 I need to show a BAD respoonse on logon and not proceed
-        //if (response.StatusCode != 200)
-        */
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         Money = SimulationService.CurrentBalance;
     }

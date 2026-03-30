@@ -10,5 +10,6 @@ namespace MP_Project.Shared
 	{
 		public string Username { get; set; }
 		public string Password { get; set; }
+		
 	}
 }

@@ -13,6 +13,7 @@ builder.Services.AddScoped<ConnectionService>();
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<SupplierTransactionService>();
 builder.Services.AddSingleton<SimulationService>();
+builder.Services.AddScoped<AuthService>();
 
 
 builder.Services.AddHttpClient("API", client =>

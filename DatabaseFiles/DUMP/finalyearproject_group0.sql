@@ -18,28 +18,26 @@ USE `finalyearproject`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `customertransactionitem`
+-- Table structure for table `group`
 --
 
-DROP TABLE IF EXISTS `customertransactionitem`;
+DROP TABLE IF EXISTS `group`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `customertransactionitem` (
-  `CustomerTransactionItemID` int NOT NULL,
-  `Quantity` int DEFAULT NULL,
-  `Price` decimal(10,2) DEFAULT NULL,
-  `Total` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`CustomerTransactionItemID`)
+CREATE TABLE `group` (
+  `GroupID` int NOT NULL,
+  `Name` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`GroupID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `customertransactionitem`
+-- Dumping data for table `group`
 --
 
-LOCK TABLES `customertransactionitem` WRITE;
-/*!40000 ALTER TABLE `customertransactionitem` DISABLE KEYS */;
-/*!40000 ALTER TABLE `customertransactionitem` ENABLE KEYS */;
+LOCK TABLES `group` WRITE;
+/*!40000 ALTER TABLE `group` DISABLE KEYS */;
+/*!40000 ALTER TABLE `group` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -51,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-15 16:29:33
+-- Dump completed on 2026-03-30 21:41:57

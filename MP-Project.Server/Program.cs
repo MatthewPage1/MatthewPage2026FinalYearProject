@@ -34,15 +34,11 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-///////////////////////////////////////////////////////////////
-// builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
 	var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 	options.UseMySql(conn, ServerVersion.AutoDetect(conn));
 });
-///////////////////////////////////////////////////////////////
-///
 
 builder.Services.AddCors(options =>
 {
@@ -70,10 +66,6 @@ app.UseHttpsRedirection();
 app.UseCors("AllowClient");
 
 app.UseSession();
-
-// REMOVE dynamic connection string middleware 
-//app.UseMiddleware<ConnectionMiddleware>();
-////////////////////////////////////////////////////
 
 app.UseAuthorization();
 

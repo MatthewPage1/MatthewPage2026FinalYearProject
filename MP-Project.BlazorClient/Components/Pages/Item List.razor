@@ -1,6 +1,8 @@
 ﻿@page "/item-list"
 @inject IHttpClientFactory ClientFactory
+@inject AuthService AuthService
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.WebUtilities;
 @using MP_Project.Shared
 
 <!--Update screen every 5 seconds to allow finance changes to occur-->
@@ -185,11 +187,35 @@
     private int purchaseQuantity = 1;
     private DateTime deliveryDate = DateTime.Today;
 
-	//fetch the products to display when the page loads
+    //fetch the products to display when the page loads
     protected override async Task OnInitializedAsync()
     {
+        var userId = AuthService.UserId;
+
+        Console.WriteLine($"UserId: {userId}");
+
+        if (userId <= 0)
+        {
+            Console.WriteLine("User not logged in yet");
+            return;
+        }
         var http = ClientFactory.CreateClient("API");
-        var result = await http.GetFromJsonAsync<List<Product>>("api/products");
+
+        ////
+        ///
+        /// 
+        var query = new Dictionary<string, string?>()
+                {
+					["currentUserId"] = userId.ToString()
+				};
+
+		var url = QueryHelpers.AddQueryString(			
+            "api/products/byuser", query
+		);
+
+		
+
+        var result = await http.GetFromJsonAsync<List<Product>>(url);
         if (result != null)
             products = result;
     }

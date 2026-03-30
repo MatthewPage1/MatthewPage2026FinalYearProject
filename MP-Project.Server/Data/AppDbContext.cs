@@ -39,5 +39,6 @@ namespace MP_Project.Server.Data
 		public DbSet<Supplier> Supplier { get; set; }
 		public DbSet<Sale> Sales { get; set; }
 		public DbSet<SimulationHistory> SimulationHistory { get; set; }
+	
 	}
 }

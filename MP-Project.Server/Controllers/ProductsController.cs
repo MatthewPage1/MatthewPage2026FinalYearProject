@@ -16,11 +16,14 @@ public class ProductsController : ControllerBase
 
 
 	//GET to return all products within the database
-	[HttpGet]
-	public async Task<ActionResult<List<Product>>> GetProducts()
+	
+	[HttpGet("byuser")]
+	public async Task<ActionResult<List<Product>>> GetProducts(int currentUserId)
 	{
-
-		return await _context.products.ToListAsync();
+		return await _context.products
+			.Where(p => p.UserId == currentUserId)
+			.ToListAsync();
+				
 	}
 
 

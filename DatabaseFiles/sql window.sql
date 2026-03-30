@@ -275,5 +275,36 @@ Truncate Table SimulationHistory;
 Truncate Table SupplierTransaction;
 Truncate Table Sales;
 
+CREATE TABLE Users (
+    UserId INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(100) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE Users
+RENAME COLUMN CustomerID TO UserId;
+
+SELECT * FROM users;
+
+INSERT INTO Users (Username, PasswordHash)
+VALUES('User1', 'Password1'),('User2', 'Password2');
+
+ALTER TABLE Products
+ADD COLUMN UserId INT NOT NULL;
+
+ALTER TABLE Products
+ADD INDEX idx_userid (UserId);
+
+UPDATE Products
+SET UserId = 1
+WHERE ProductId IS NOT NULL;
+
+select * from products
+WHERE userId = 2;
 
 
+select * from users;
+
+describe suppliertransaction;
+describe products;
+describe users;
