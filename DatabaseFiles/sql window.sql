@@ -268,6 +268,12 @@ ALTER TABLE SimulationHistory
 ADD UNIQUE (Day);
 
 SELECT * FROM SimulationHistory;
+Select * from SupplierTransaction;
+select * from sales;
+
 Truncate Table SimulationHistory;
 Truncate Table SupplierTransaction;
 Truncate Table Sales;
+
+
+
