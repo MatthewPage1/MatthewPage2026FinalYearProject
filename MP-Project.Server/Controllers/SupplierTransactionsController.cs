@@ -129,6 +129,33 @@ public class SupplierTransactionsController : ControllerBase
 		return Ok();
 	}
 
+	[HttpPost("checkInPendingDeliveries")]
+	public async Task<IActionResult> CheckInPendingDeliveries()
+	{
+		var deliveries = await _context.SupplierTransaction
+			.Where(t => !t.CheckedIn)
+			.ToListAsync();
+
+		foreach (var delivery in deliveries)
+		{
+			var product = await _context.products
+				.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID);
+
+			if (product != null)
+			{
+				product.StockCount += delivery.Quantity;
+			}
+
+			delivery.Processed = true;
+			delivery.CheckedIn = true;
+			delivery.DeliveryDate = DateTime.Today;
+		}
+
+		await _context.SaveChangesAsync();
+
+		return Ok();
+	}
+
 	[HttpGet("delivery-cost-today")]
 	public async Task<ActionResult<decimal>> GetDeliveryCostToday(int day)
 	{	
@@ -138,12 +165,11 @@ public class SupplierTransactionsController : ControllerBase
 		var dToday = DateTime.Today.AddDays(day);
 		Console.WriteLine($"Real date is : {DateTime.Today}");
 		Console.WriteLine($"Simulated date is : {dToday}");
-
-
+		
 		var totalCost = await _context.SupplierTransaction
 			.Where(t => t.CheckedIn && t.DeliveryDate.Date == dToday)
 			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
-
+	
 		return Ok(totalCost);
 	}
 }

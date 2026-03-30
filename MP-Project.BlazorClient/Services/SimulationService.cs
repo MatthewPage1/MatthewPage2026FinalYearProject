@@ -14,6 +14,12 @@ public class SimulationService
 	public List<Sale> Sales { get; private set; } = new();
 	public bool IsRunning { get; private set; }
 
+	public decimal CurrentBalance => currentBalance;
+
+	public event Action? OnChange;
+
+	private void NotifyStateChanged() => OnChange?.Invoke();
+
 	public SimulationService(IHttpClientFactory factory)
 	{
 		ClientFactory = factory;
@@ -36,6 +42,7 @@ public class SimulationService
 
 		_cts = new CancellationTokenSource();
 		IsRunning = true;
+		NotifyStateChanged();
 
 		try
 		{
@@ -44,10 +51,8 @@ public class SimulationService
 				return;
 			}
 
-			Console.WriteLine($"Personas inside sim: {personas.Count}");
-			Console.WriteLine($"Products inside sim: {products?.Count}");
-
 			var http = ClientFactory.CreateClient("API");
+
 			var history = await http.GetFromJsonAsync<List<SimulationHistory>>(
 				"api/simulation/history"
 			);
@@ -56,28 +61,23 @@ public class SimulationService
 			{
 				currentDay = history.Max(x => x.Day);
 				currentBalance = history.OrderBy(x => x.Day).Last().Balance;
-
-				Console.WriteLine($"RESUMING FROM DAY {currentDay} | Balance: {currentBalance}");
 			}
+
+			int dayDelay = secondsPerDay * 1000;
 
 			for (int day = 1; day <= days; day++)
 			{
 				decimal dailyRevenue = 0;
 				decimal dailyCosts = 0;
 
-				int delayPerCustomer = customersPerDay > 0
-					? (secondsPerDay * 1000) / customersPerDay
-					: 1000;
-
 				for (int c = 0; c < customersPerDay; c++)
 				{
-
 					if (_cts.Token.IsCancellationRequested)
 					{
 						return;
 					}
-					var persona = personas[3];//[_rand.Next(personas.Count)];
-					Console.WriteLine($"Persona: {persona.Name}");
+
+					var persona = personas[_rand.Next(personas.Count)];
 					var sales = GenerateSales(persona, products);
 
 					Sales.AddRange(sales);
@@ -88,12 +88,8 @@ public class SimulationService
 
 						try
 						{
-							var url1 = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}";
-
-							Console.WriteLine($"CALLING: {url1}");
-
+							var url1 = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}&day={day}";
 							var response = await http.PutAsync(url1, null);
-
 
 							if (!response.IsSuccessStatusCode)
 							{
@@ -105,8 +101,9 @@ public class SimulationService
 							Console.WriteLine($"POST ERROR: {ex.Message}");
 						}
 					}
-					await Task.Delay(delayPerCustomer, _cts.Token);
 				}
+
+
 
 				var query = new Dictionary<string, string?>()
 				{
@@ -118,14 +115,14 @@ public class SimulationService
 					query
 				);
 
-				Console.WriteLine($"day value: {day}");
-				Console.WriteLine($"Query = {query}");
-				Console.WriteLine($"URL = {url}");
-
 				var deliveryCost = await http.GetFromJsonAsync<decimal>(url);
 				dailyCosts += deliveryCost;
 
 				await RecordDayAsync(dailyRevenue, dailyCosts);
+
+				NotifyStateChanged();
+
+				await Task.Delay(dayDelay, _cts.Token);
 			}
 		}
 		catch (Exception ex)
@@ -136,6 +133,7 @@ public class SimulationService
 		{
 			Console.WriteLine("SIMULATION FINISHED");
 			IsRunning = false;
+			NotifyStateChanged();
 		}
 	}
 
@@ -145,8 +143,10 @@ public class SimulationService
 		{
 			_cts.Cancel();
 		}
+
 		Console.WriteLine("SIMULATION STOPPED");
 		IsRunning = false;
+		NotifyStateChanged();
 	}
 
 	private List<Sale> GenerateSales(Persona persona, List<Product> products)
@@ -204,8 +204,6 @@ public class SimulationService
 	private async Task RecordDayAsync(decimal revenue, decimal costs)
 	{
 		currentDay++;
-		Console.WriteLine($"RECORDING DAY {currentDay} | Balance: {currentBalance}");
-
 		currentBalance += (revenue - costs);
 
 		var record = new SimulationHistory
@@ -219,17 +217,14 @@ public class SimulationService
 
 		var http = ClientFactory.CreateClient("API");
 		var response = await http.PostAsJsonAsync(
-		"api/simulation/history", 
-		record
+			"api/simulation/history",
+			record
 		);
 
 		if (!response.IsSuccessStatusCode)
 		{
 			var error = await response.Content.ReadAsStringAsync();
-			Console.WriteLine($"POST FAILED: {error}");
 			throw new Exception(error);
 		}
-
 	}
-
 }

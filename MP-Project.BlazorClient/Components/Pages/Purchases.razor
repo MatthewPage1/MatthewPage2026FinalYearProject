@@ -1,17 +1,16 @@
 ﻿@page "/purchases"
+@inject SimulationService SimulationService
 @inject IHttpClientFactory ClientFactory
 @using MP_Project.Shared
+@implements IDisposable
 
-<!--Update screen every 5 seconds to allow finance changes to occur-->
 <AutoRefresh IntervalSeconds="5" OnRefresh="LoadTransactions" OnStateChange="StateHasChanged" />
 
 <div class="content-card">
-    <!-- Purchases title-->
     <div class="section-title">
         Purchases
     </div>
 
-    <!-- Search bar-->
     <div class="search-bar-container">
         <input type="text"
                placeholder="Search Supplier..."
@@ -19,7 +18,6 @@
                @bind:event="oninput" />
     </div>
 
-    <!-- Table headers-->
     <div class="purchase-header">
         <span>Supplier</span>
         <span>Contact</span>
@@ -31,20 +29,15 @@
     </div>
 
     <div class="purchase-scroll">
-        <!--Table contents-->
         @foreach (var t in FilteredTransactions)
         {
             <div class="purchase-row @(t.Processed && !t.CheckedIn ? "row-action" : "")"
                  @onclick="() => HandleRowClick(t)">
 
                 <span>@t.SupplierName</span>
-
                 <span>@t.SupplierEmail<br />@t.SupplierPhone</span>
-
                 <span>@t.Quantity x @t.ProductName</span>
-
                 <span>£@t.TotalPrice</span>
-
                 <span>@t.DeliveryDate.ToShortDateString()</span>
 
                 <span>
@@ -63,20 +56,25 @@
                         <span class="check-false">☒</span>
                     }
                 </span>
-
             </div>
         }
-
     </div>
 
-    <!-- button to check in all deliveries-->
     <button class="btn btn-success"
-			disabled="@(DeliveriesToCheckIn == 0)"
+            disabled="@(DeliveriesToCheckIn == 0)"
             @onclick="CheckInAllDeliveries">
         @(DeliveriesToCheckIn == 0
                 ? "No Deliveries To Check In"
                 : $"Check In {DeliveriesToCheckIn} {(DeliveriesToCheckIn == 1 ? "Delivery" : "Deliveries")}")
     </button>
+
+    @if (SimulationService.IsRunning)
+    {
+        <button class="btn btn-warning"
+                @onclick="CheckInPendingDeliveries">
+            Check In Pending Deliveries (Simulation)
+        </button>
+    }
 
 </div>
 
@@ -87,6 +85,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SimulationService.OnChange += StateHasChanged;
+
         var http = ClientFactory.CreateClient("API");
 
         await http.PostAsync("api/SupplierTransactions/processDeliveries", null);
@@ -94,18 +94,20 @@
         await LoadTransactions();
     }
 
-	//load the transactions to display on the page
+    public void Dispose()
+    {
+        SimulationService.OnChange -= StateHasChanged;
+    }
+
     private async Task LoadTransactions()
     {
         var http = ClientFactory.CreateClient("API");
-
         var result = await http.GetFromJsonAsync<List<PurchaseDto>>("api/suppliertransactions");
 
         if (result != null)
             transactions = result;
     }
 
-	//check in a single delivery when a row is clicked and is not already checked in
     private async Task CheckInSingleDelivery(int transactionId)
     {
         var http = ClientFactory.CreateClient("API");
@@ -118,7 +120,6 @@
         await LoadTransactions();
     }
 
-    //check in all deleveries that have not been checked in yet
     private async Task CheckInAllDeliveries()
     {
         var http = ClientFactory.CreateClient("API");
@@ -131,7 +132,18 @@
         await LoadTransactions();
     }
 
-    //filter transactions based on search
+    private async Task CheckInPendingDeliveries()
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        await http.PostAsync(
+            "api/SupplierTransactions/checkInPendingDeliveries",
+            null
+        );
+
+        await LoadTransactions();
+    }
+
     private IEnumerable<PurchaseDto> FilteredTransactions =>
         string.IsNullOrWhiteSpace(searchText)
             ? transactions
@@ -139,7 +151,6 @@
                 t.SupplierName != null &&
                 t.SupplierName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
-	//run CheckInSignleDelivery if processed but not checked in
     private async Task HandleRowClick(PurchaseDto t)
     {
         if (!t.Processed || t.CheckedIn)
@@ -149,6 +160,5 @@
     }
 
     private int DeliveriesToCheckIn =>
-    transactions.Count(t => t.Processed && !t.CheckedIn);
-
+        transactions.Count(t => t.Processed && !t.CheckedIn);
 }

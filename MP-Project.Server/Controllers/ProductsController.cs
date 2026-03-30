@@ -26,8 +26,9 @@ public class ProductsController : ControllerBase
 
 	//PUT to decrease the stock of a speicfic product and also log the movement of stock
 	[HttpPut("{id}/decrease-stock")]
-	public async Task<IActionResult> DecreaseStock(int id, int quantity)
+	public async Task<IActionResult> DecreaseStock(int id, int quantity, int day)
 	{
+		Console.WriteLine($"DECREASE-STOCK passing through the  day: {day}");
 		var product = await _context.products.FindAsync(id);
 
 		if (product == null)
@@ -45,7 +46,7 @@ public class ProductsController : ControllerBase
 			Quantity = quantity,
 			SellingPrice = product.SellingPrice,
 			TotalPrice = product.SellingPrice * quantity,
-			SaleDate = DateTime.UtcNow
+			SaleDate = DateTime.UtcNow.AddDays(day)
 		};
 
 		_context.Sales.Add(sale);
@@ -64,8 +65,8 @@ public class ProductsController : ControllerBase
 					Quantity = product.ReorderLevel * 3,
 					CostPrice = product.CostPrice,
 					TotalPrice = product.CostPrice * product.ReorderLevel * 3,
-					TransactionDate = DateTime.UtcNow,
-					DeliveryDate = DateTime.UtcNow,
+					TransactionDate = DateTime.UtcNow.AddDays(day),
+					DeliveryDate = DateTime.UtcNow.AddDays(day), //this needs to be +days because of simulation
 					SupplierID = product.SupplierID,
 					Processed = false,
 					CheckedIn = false

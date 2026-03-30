@@ -5,14 +5,15 @@
 @using System.Threading.Tasks;
 
 @inject ThemeService ThemeService
+@inject SimulationService SimulationService
 @inject IHttpClientFactory ClientFactory
 @implements IDisposable
 @inherits LayoutComponentBase
 
-<AutoRefresh IntervalSeconds="5" OnRefresh="OnInitializedAsync" OnStateChange="StateHasChanged" />
+<AutoRefresh IntervalSeconds="5" OnRefresh="RefreshMoney" OnStateChange="StateHasChanged" />
+
 <div class="app-container @(ThemeService.CurrentTheme)">
 
-    <!-- Sidebar with buttons for each page -->
     <div class="sidebar">
         <NavLink href="/dashboard" class="nav-item">Dashboard</NavLink>
         <NavLink href="/item-list" class="nav-item">Item List</NavLink>
@@ -29,17 +30,17 @@
         </div>
     </div>
 
-    <!-- Horizontal Bar Top -->
     <div class="main-content">
         <div class="header-bar">
             <div class="header">
-            Inventory Management System
+                Inventory Management System
             </div>
 
             <div class="header-money">
                 <span>£@Money.ToString("N2")</span>
             </div>
         </div>
+
         <div class="page-content">
             @Body
         </div>
@@ -48,14 +49,14 @@
 </div>
 
 @code {
-    
-    //ensure screens are updated when theme changes
+
     protected override void OnInitialized()
     {
         ThemeService.OnThemeChanged += Refresh;
+        SimulationService.OnChange += UpdateMoney;
+        Money = SimulationService.CurrentBalance;
     }
 
-    //refresh screen to allow theme change
     private async void Refresh()
     {
         await InvokeAsync(() =>
@@ -67,11 +68,11 @@
     public void Dispose()
     {
         ThemeService.OnThemeChanged -= Refresh;
+        SimulationService.OnChange -= UpdateMoney;
     }
 
     private decimal Money;
 
-    //fetch finance data on load and every 5 seconds to update the profit display
     protected override async Task OnInitializedAsync()
     {
 
@@ -88,25 +89,32 @@
            // password = "Test1Password1$"
 
         };
-        
-        
+
+
         var response = await http.PostAsJsonAsync("https://localhost:7190/api/auth/login", payload);
         var responseString = await response.Content.ReadAsStringAsync();
         Console.WriteLine(response.StatusCode);
         Console.WriteLine(responseString);
-        
-        
+
+
         // remember if not 200 I need to show a BAD respoonse on logon and not proceed
         //if (response.StatusCode != 200)
         */
         /////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
-        var http = ClientFactory.CreateClient("API");
 
-        var result = await http.GetFromJsonAsync<FinanceDto>("api/products/finances");
+        Money = SimulationService.CurrentBalance;
+    }
 
-        if (result != null)
-            Money = result.Profit;
+    private void UpdateMoney()
+    {
+        Money = SimulationService.CurrentBalance;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private Task RefreshMoney()
+    {
+        Money = SimulationService.CurrentBalance;
+        return Task.CompletedTask;
     }
 
     public class FinanceDto
