@@ -14,5 +14,6 @@ namespace MP_Project.Shared
 		public decimal TotalPrice { get; set; }
 		public DateTime SaleDate { get; set; }
 		public int ProductID { get; set; }
+		public int UserId { get; set; }
 	}
 }

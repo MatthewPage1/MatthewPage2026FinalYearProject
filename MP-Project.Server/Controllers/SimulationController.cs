@@ -29,4 +29,28 @@ public class SimulationController : ControllerBase
 			.OrderBy(x => x.Day)
 			.ToListAsync();
 	}
+
+
+	[HttpGet("history/byuser")]
+	public async Task<ActionResult<List<SimulationHistory>>> GetHistoryByUser(int currentUserId)
+	{
+		return await _context.SimulationHistory
+			.Where(x => x.UserId == currentUserId)
+			.OrderBy(x => x.Day)
+			.ToListAsync();
+	}
+
+
+	[HttpGet("balance/byuser")]
+	public async Task<ActionResult<decimal>> GetBalance(int currentUserId)
+	{
+		var latest = await _context.SimulationHistory
+			.Where(x => x.UserId == currentUserId)
+			.OrderByDescending(x => x.Day)
+			.Select(x => x.Balance)
+			.FirstOrDefaultAsync();
+
+		return Ok(latest);
+	}
+
 }

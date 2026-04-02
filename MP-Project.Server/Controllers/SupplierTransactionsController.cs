@@ -4,6 +4,7 @@ using MP_Project.Server.Data;
 using MP_Project.Shared;
 using MySqlConnector;
 using Dapper;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace MP_Project.Server.Controllers;
 
@@ -21,7 +22,7 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<List<PurchaseDto>>> GetTransactions()
+	public async Task<ActionResult<List<PurchaseDto>>> GetTransactions(int currentUserId)
 	{
 		var purchases = await (
 			from Transaction in _context.SupplierTransaction
@@ -29,6 +30,7 @@ public class SupplierTransactionsController : ControllerBase
 				on Transaction.ProductID equals Products.ProductId
 			join Supplier in _context.Supplier
 				on Transaction.SupplierID equals Supplier.SupplierID
+			where Transaction.UserId == currentUserId
 			orderby Transaction.TransactionID descending
 			select new PurchaseDto
 			{
@@ -54,9 +56,9 @@ public class SupplierTransactionsController : ControllerBase
 		using var connection = new MySqlConnection(_config.GetConnectionString("DefaultConnection"));
 
 		string sql = @"INSERT INTO suppliertransaction
-		(Quantity, CostPrice, TotalPrice, TransactionDate, DeliveryDate, Processed, SupplierID, ProductID)
-		VALUES
-		(@Quantity, @CostPrice, @TotalPrice, @TransactionDate, @DeliveryDate, @Processed, @SupplierID, @ProductID)";
+        (Quantity, CostPrice, TotalPrice, TransactionDate, DeliveryDate, Processed, SupplierID, ProductID, UserId)
+        VALUES
+        (@Quantity, @CostPrice, @TotalPrice, @TransactionDate, @DeliveryDate, @Processed, @SupplierID, @ProductID, @UserId)";
 
 		await connection.ExecuteAsync(sql, transaction);
 
@@ -64,16 +66,16 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpPost("processDeliveries")]
-	public async Task<IActionResult> ProcessDeliveries()
+	public async Task<IActionResult> ProcessDeliveries(int currentUserId)
 	{
 		var deliveries = await _context.SupplierTransaction
-			.Where(t => t.DeliveryDate.Date <= DateTime.Today && !t.Processed)
+			.Where(t => t.UserId == currentUserId &&
+						t.DeliveryDate.Date <= DateTime.Today &&
+						!t.Processed)
 			.ToListAsync();
 
 		foreach (var delivery in deliveries)
-		{
 			delivery.Processed = true;
-		}
 
 		await _context.SaveChangesAsync();
 
@@ -81,21 +83,19 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpPost("checkInDelivery")]
-	public async Task<IActionResult> CheckInDelivery([FromBody] int transactionId)
+	public async Task<IActionResult> CheckInDelivery(int transactionId, int currentUserId)
 	{
 		var delivery = await _context.SupplierTransaction
-			.FirstOrDefaultAsync(t => t.TransactionID == transactionId);
+			.FirstOrDefaultAsync(t => t.TransactionID == transactionId && t.UserId == currentUserId);
 
 		if (delivery == null || !delivery.Processed || delivery.CheckedIn)
 			return BadRequest();
 
 		var product = await _context.products
-			.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID);
+			.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID && p.UserId == currentUserId);
 
 		if (product != null)
-		{
 			product.StockCount += delivery.Quantity;
-		}
 
 		delivery.CheckedIn = true;
 
@@ -105,21 +105,21 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpPost("checkInAllDeliveries")]
-	public async Task<IActionResult> CheckInAllDeliveries()
+	public async Task<IActionResult> CheckInAllDeliveries(int currentUserId)
 	{
 		var deliveries = await _context.SupplierTransaction
-			.Where(t => t.Processed && !t.CheckedIn)
+			.Where(t => t.UserId == currentUserId &&
+						t.Processed &&
+						!t.CheckedIn)
 			.ToListAsync();
 
 		foreach (var delivery in deliveries)
 		{
 			var product = await _context.products
-				.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID);
+				.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID && p.UserId == currentUserId);
 
 			if (product != null)
-			{
 				product.StockCount += delivery.Quantity;
-			}
 
 			delivery.CheckedIn = true;
 		}
@@ -130,21 +130,19 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpPost("checkInPendingDeliveries")]
-	public async Task<IActionResult> CheckInPendingDeliveries()
+	public async Task<IActionResult> CheckInPendingDeliveries(int currentUserId)
 	{
 		var deliveries = await _context.SupplierTransaction
-			.Where(t => !t.CheckedIn)
+			.Where(t => t.UserId == currentUserId && !t.CheckedIn)
 			.ToListAsync();
 
 		foreach (var delivery in deliveries)
 		{
 			var product = await _context.products
-				.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID);
+				.FirstOrDefaultAsync(p => p.ProductId == delivery.ProductID && p.UserId == currentUserId);
 
 			if (product != null)
-			{
 				product.StockCount += delivery.Quantity;
-			}
 
 			delivery.Processed = true;
 			delivery.CheckedIn = true;
@@ -157,19 +155,16 @@ public class SupplierTransactionsController : ControllerBase
 	}
 
 	[HttpGet("delivery-cost-today")]
-	public async Task<ActionResult<decimal>> GetDeliveryCostToday(int day)
-	{	
+	public async Task<ActionResult<decimal>> GetDeliveryCostToday(int day, int currentUserId)
+	{
+		var simulatedDate = DateTime.Today.AddDays(day);
 
-		//Console.WriteLine("Day number :", day);
-		Console.WriteLine($"Day number: {day}");
-		var dToday = DateTime.Today.AddDays(day);
-		Console.WriteLine($"Real date is : {DateTime.Today}");
-		Console.WriteLine($"Simulated date is : {dToday}");
-		
 		var totalCost = await _context.SupplierTransaction
-			.Where(t => t.CheckedIn && t.DeliveryDate.Date == dToday)
+			.Where(t => t.UserId == currentUserId &&
+						t.CheckedIn &&
+						t.DeliveryDate.Date == simulatedDate)
 			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
-	
+
 		return Ok(totalCost);
 	}
 }

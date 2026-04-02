@@ -2,6 +2,8 @@
 @page "/dashboard"
 
 @using MP_Project.BlazorClient.Components.Layout
+@using Microsoft.AspNetCore.WebUtilities
+@inject AuthService AuthService
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
 
@@ -32,8 +34,24 @@
 
     private async Task LoadData()
     {
+        var userId = AuthService.UserId;
+
+        if (userId <= 0)
+            return;
+
         var http = ClientFactory.CreateClient("API");
-        var history = await http.GetFromJsonAsync<List<SimulationHistory>>("api/simulation/history");
+
+        var query = new Dictionary<string, string?>
+        {
+            ["currentUserId"] = userId.ToString()
+        };
+
+        var url = QueryHelpers.AddQueryString(
+            "api/simulation/history/byuser",
+            query
+        );
+
+        var history = await http.GetFromJsonAsync<List<SimulationHistory>>(url);
 
         if (history != null && history.Any())
         {
@@ -74,5 +92,6 @@
         public decimal Revenue { get; set; }
         public decimal Costs { get; set; }
         public DateTime Timestamp { get; set; }
+        public int UserId { get; set; }
     }
 }

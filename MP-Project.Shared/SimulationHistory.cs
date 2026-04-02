@@ -9,5 +9,6 @@ namespace MP_Project.Shared
 		public decimal Revenue { get; set; }
 		public decimal Costs { get; set; }
 		public DateTime Timestamp { get; set; }
+		public int UserId { get; set; }
 	}
 }

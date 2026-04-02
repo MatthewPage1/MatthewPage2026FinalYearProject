@@ -104,6 +104,18 @@ body {
     font-size: 2.5rem;
 }
 
+.header-username {
+    position: absolute;
+    text-align: left;
+    padding-left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: white;
+    font-size: 2.5rem;
+}
+
+
 .page-content {
     padding: 2rem;
     flex: 1;

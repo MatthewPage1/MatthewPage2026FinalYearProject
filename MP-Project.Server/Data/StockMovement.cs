@@ -21,6 +21,9 @@ namespace MP_Project.Server.Data
 
 		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+		[Required]
+		public int UserId { get; set; }
+
 		[ForeignKey("ProductId")]
 		public Product? Product { get; set; }
 	}

@@ -1,6 +1,8 @@
 ﻿@page "/DEV"
 @using MP_Project.Shared
+@using Microsoft.AspNetCore.WebUtilities
 @inject IHttpClientFactory ClientFactory
+@inject AuthService AuthService
 @inject SimulationService SimulationService
 
 
@@ -77,9 +79,25 @@
         var http = ClientFactory.CreateClient("API");
 
         personas = await http.GetFromJsonAsync<List<Persona>>("api/personas") ?? new();
-        var products = await http.GetFromJsonAsync<List<Product>>("api/products");
+        var userId = AuthService.UserId;
 
-        Console.WriteLine($"Personas: {personas?.Count}");
+        if (userId <= 0)
+        {
+            Console.WriteLine("User not logged in");
+            return;
+        }
+
+        var query = new Dictionary<string, string?>
+        {
+            ["currentUserId"] = userId.ToString()
+        };
+
+        var url = QueryHelpers.AddQueryString(
+            "api/products/byuser",
+            query
+        );
+
+        var products = await http.GetFromJsonAsync<List<Product>>(url);
         Console.WriteLine($"Products: {products?.Count}");
 
         await SimulationService.RunSimulationAsync(
@@ -87,7 +105,8 @@
             customersPerDay: CustomersPerDay,
             secondsPerDay: DayDurationSeconds,
             personas: personas!,
-            products: products!
+            products: products!,
+            userId: AuthService.UserId
         );
     }
 

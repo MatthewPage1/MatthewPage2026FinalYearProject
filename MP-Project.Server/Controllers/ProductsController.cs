@@ -29,10 +29,10 @@ public class ProductsController : ControllerBase
 
 	//PUT to decrease the stock of a speicfic product and also log the movement of stock
 	[HttpPut("{id}/decrease-stock")]
-	public async Task<IActionResult> DecreaseStock(int id, int quantity, int day)
+	public async Task<IActionResult> DecreaseStock(int id, int quantity, int day, int currentUserId)
 	{
 		Console.WriteLine($"DECREASE-STOCK passing through the  day: {day}");
-		var product = await _context.products.FindAsync(id);
+		var product = await _context.products.FirstOrDefaultAsync(p => p.ProductId == id && p.UserId == currentUserId);
 
 		if (product == null)
 			return NotFound("Product not found.");
@@ -49,7 +49,8 @@ public class ProductsController : ControllerBase
 			Quantity = quantity,
 			SellingPrice = product.SellingPrice,
 			TotalPrice = product.SellingPrice * quantity,
-			SaleDate = DateTime.UtcNow.AddDays(day)
+			SaleDate = DateTime.UtcNow.AddDays(day),
+			UserId = currentUserId
 		};
 
 		_context.Sales.Add(sale);
@@ -72,7 +73,8 @@ public class ProductsController : ControllerBase
 					DeliveryDate = DateTime.UtcNow.AddDays(day), //this needs to be +days because of simulation
 					SupplierID = product.SupplierID,
 					Processed = false,
-					CheckedIn = false
+					CheckedIn = false,
+					UserId = currentUserId
 				};
 				_context.SupplierTransaction.Add(reorder);
 			}
@@ -84,7 +86,8 @@ public class ProductsController : ControllerBase
 			ProductId = product.ProductId,
 			ChangeAmount = -quantity,
 			MovementType = "Decrease",
-			CreatedAt = DateTime.UtcNow
+			CreatedAt = DateTime.UtcNow,
+			UserId = currentUserId
 		};
 
 		_context.StockMovements.Add(movement);
@@ -93,7 +96,7 @@ public class ProductsController : ControllerBase
 
 		return Ok(product);
 	}
-
+/*
 	//PUT to increase the stock of a speicfic product and also log the movement of stock
 	[HttpPut("{id}/increase-stock")]
 	public async Task<IActionResult> IncreaseStock(int id, int quantity)
@@ -119,56 +122,56 @@ public class ProductsController : ControllerBase
 			ProductId = product.ProductId,
 			ChangeAmount = -quantity,
 			MovementType = "Sale",
-			CreatedAt = DateTime.UtcNow
+			CreatedAt = DateTime.UtcNow,
+			UserId = currentUserId
 		});
 
 		await _context.SaveChangesAsync();
 
 		return Ok(product);
 	}
-	
+*/
+
+
 	//GET to return best selling, total stock per group, recently ordered and underperforming
 	[HttpGet("inventoryupdates")]
-	public async Task<IActionResult> GetDashboard()
+	public async Task<IActionResult> GetDashboard(int currentUserId)
 	{
-		//best sellers by quantity sold
 		var bestSellers = await _context.StockMovements
-			.Where(stockMovement => stockMovement.ChangeAmount < 0)
-			.GroupBy(stockMovement => stockMovement.ProductId)
-			.Select(productGroup => new
+			.Where(sm => sm.ChangeAmount < 0 && sm.UserId == currentUserId)
+			.GroupBy(sm => sm.ProductId)
+			.Select(g => new
 			{
-				ProductId = productGroup.Key,
-				TotalSold = productGroup.Sum(stockMovement => -stockMovement.ChangeAmount)
+				ProductId = g.Key,
+				TotalSold = g.Sum(sm => -sm.ChangeAmount)
 			})
-			.OrderByDescending(summary => summary.TotalSold)
+			.OrderByDescending(x => x.TotalSold)
 			.Take(5)
-			.Join(_context.products,
+			.Join(_context.products.Where(p => p.UserId == currentUserId),
 				  summary => summary.ProductId,
 				  product => product.ProductId,
 				  (summary, product) => product)
 			.ToListAsync();
 
-		//total stock in each product group
 		var totalStockByGroup = await _context.products
-			.Where(product => product.ProductGroup1 != null)
-			.GroupBy(product => product.ProductGroup1)
-			.Select(productGroup => new
+			.Where(p => p.ProductGroup1 != null && p.UserId == currentUserId)
+			.GroupBy(p => p.ProductGroup1)
+			.Select(g => new
 			{
-				ProductGroup = productGroup.Key,
-				TotalStock = productGroup.Sum(product => product.StockCount)
+				ProductGroup = g.Key,
+				TotalStock = g.Sum(p => p.StockCount)
 			})
-			.OrderByDescending(groupStock => groupStock.TotalStock)
+			.OrderByDescending(x => x.TotalStock)
 			.ToListAsync();
 
-		//recently ordered products
 		var recentlyOrdered = await _context.StockMovements
-			.Where(stockMovement => stockMovement.ChangeAmount > 0)
-			.OrderByDescending(stockMovement => stockMovement.CreatedAt)
+			.Where(sm => sm.ChangeAmount > 0 && sm.UserId == currentUserId)
+			.OrderByDescending(sm => sm.CreatedAt)
 			.Take(5)
-			.Join(_context.products,
-				  stockMovement => stockMovement.ProductId,
+			.Join(_context.products.Where(p => p.UserId == currentUserId),
+				  sm => sm.ProductId,
 				  product => product.ProductId,
-				  (stockMovement, product) => product)
+				  (sm, product) => product)
 			.ToListAsync();
 
 		return Ok(new

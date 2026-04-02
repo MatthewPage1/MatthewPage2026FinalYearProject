@@ -279,21 +279,14 @@
         {
 
             Quantity = purchaseQuantity,
-
             CostPrice = selectedProduct.CostPrice,
-
             TotalPrice = purchaseQuantity * selectedProduct.CostPrice,
-
             TransactionDate = DateTime.Now,
-
             DeliveryDate = deliveryDate,
-
             Processed = false,
-
             SupplierID = selectedProduct.SupplierID,
-
-            ProductID = selectedProduct.ProductId
-
+            ProductID = selectedProduct.ProductId,
+            UserId = AuthService.UserId
         };
 
         await http.PostAsJsonAsync("api/SupplierTransactions/addSupplierTransaction", transaction);
@@ -304,9 +297,21 @@
 	//auto refresh for products to change the stock levels and finances when purchases are made
     private async Task LoadProducts()
     {
+        var userId = AuthService.UserId;
+
+        if (userId <= 0)
+            return;
+
         var http = ClientFactory.CreateClient("API");
 
-        var result = await http.GetFromJsonAsync<List<Product>>("api/products");
+        var query = new Dictionary<string, string?>
+        {
+            ["currentUserId"] = userId.ToString()
+        };
+
+        var url = QueryHelpers.AddQueryString("api/products/byuser", query);
+
+        var result = await http.GetFromJsonAsync<List<Product>>(url);
 
         if (result != null)
             products = result;

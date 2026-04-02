@@ -1,7 +1,9 @@
 ﻿@page "/purchases"
 @inject SimulationService SimulationService
 @inject IHttpClientFactory ClientFactory
+@inject AuthService AuthService
 @using MP_Project.Shared
+@using Microsoft.AspNetCore.WebUtilities
 @implements IDisposable
 
 <AutoRefresh IntervalSeconds="5" OnRefresh="LoadTransactions" OnStateChange="StateHasChanged" />
@@ -75,7 +77,6 @@
             Check In Pending Deliveries (Simulation)
         </button>
     }
-
 </div>
 
 @code {
@@ -87,9 +88,21 @@
     {
         SimulationService.OnChange += StateHasChanged;
 
+        var userId = AuthService.UserId;
+
+        if (userId <= 0)
+            return;
+
         var http = ClientFactory.CreateClient("API");
 
-        await http.PostAsync("api/SupplierTransactions/processDeliveries", null);
+        var url = QueryHelpers.AddQueryString(
+            "api/SupplierTransactions/processDeliveries",
+            new Dictionary<string, string?>
+            {
+                ["currentUserId"] = userId.ToString()
+            });
+
+        await http.PostAsync(url, null);
 
         await LoadTransactions();
     }
@@ -101,8 +114,21 @@
 
     private async Task LoadTransactions()
     {
+        var userId = AuthService.UserId;
+
+        if (userId <= 0)
+            return;
+
         var http = ClientFactory.CreateClient("API");
-        var result = await http.GetFromJsonAsync<List<PurchaseDto>>("api/suppliertransactions");
+
+        var url = QueryHelpers.AddQueryString(
+            "api/suppliertransactions",
+            new Dictionary<string, string?>
+            {
+                ["currentUserId"] = userId.ToString()
+            });
+
+        var result = await http.GetFromJsonAsync<List<PurchaseDto>>(url);
 
         if (result != null)
             transactions = result;
@@ -110,36 +136,55 @@
 
     private async Task CheckInSingleDelivery(int transactionId)
     {
+        var userId = AuthService.UserId;
+
         var http = ClientFactory.CreateClient("API");
 
-        await http.PostAsJsonAsync(
+        var url = QueryHelpers.AddQueryString(
             "api/SupplierTransactions/checkInDelivery",
-            transactionId
-        );
+            new Dictionary<string, string?>
+            {
+                ["transactionId"] = transactionId.ToString(),
+                ["currentUserId"] = userId.ToString()
+            });
+
+        await http.PostAsync(url, null);
 
         await LoadTransactions();
     }
 
     private async Task CheckInAllDeliveries()
     {
+        var userId = AuthService.UserId;
+
         var http = ClientFactory.CreateClient("API");
 
-        await http.PostAsync(
+        var url = QueryHelpers.AddQueryString(
             "api/SupplierTransactions/checkInAllDeliveries",
-            null
-        );
+            new Dictionary<string, string?>
+            {
+                ["currentUserId"] = userId.ToString()
+            });
+
+        await http.PostAsync(url, null);
 
         await LoadTransactions();
     }
 
     private async Task CheckInPendingDeliveries()
     {
+        var userId = AuthService.UserId;
+
         var http = ClientFactory.CreateClient("API");
 
-        await http.PostAsync(
+        var url = QueryHelpers.AddQueryString(
             "api/SupplierTransactions/checkInPendingDeliveries",
-            null
-        );
+            new Dictionary<string, string?>
+            {
+                ["currentUserId"] = userId.ToString()
+            });
+
+        await http.PostAsync(url, null);
 
         await LoadTransactions();
     }

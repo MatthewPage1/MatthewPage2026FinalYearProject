@@ -47,6 +47,9 @@ else
                 <div class="header-money">
                     <span>£@Money.ToString("N2")</span>
                 </div>
+                <div class="header-username">
+                    <span>Logged in As: @DisplayName</span>
+                </div>
             </div>
 
             <div class="page-content">
@@ -57,34 +60,21 @@ else
     </div>
 }
 @code {
+    private decimal Money;
+    private string DisplayName => AuthService.DisplayName ?? "Not Logged In";
 
     protected override void OnInitialized()
     {
         ThemeService.OnThemeChanged += Refresh;
         SimulationService.OnChange += UpdateMoney;
-        Money = SimulationService.CurrentBalance;
-    }
-
-    private async void Refresh()
-    {
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-    }
-
-    public void Dispose()
-    {
-        ThemeService.OnThemeChanged -= Refresh;
-        SimulationService.OnChange -= UpdateMoney;
-    }
-
-    private decimal Money;
-
-    protected override async Task OnInitializedAsync()
-    {
+        AuthService.OnLoginStateChanged += HandleLoginChange;
 
         Money = SimulationService.CurrentBalance;
+    }
+
+    private void Refresh()
+    {
+        InvokeAsync(StateHasChanged);
     }
 
     private void UpdateMoney()
@@ -99,10 +89,15 @@ else
         return Task.CompletedTask;
     }
 
-    public class FinanceDto
+    private void HandleLoginChange()
     {
-        public decimal Revenue { get; set; }
-        public decimal Costs { get; set; }
-        public decimal Profit { get; set; }
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= Refresh;
+        SimulationService.OnChange -= UpdateMoney;
+        AuthService.OnLoginStateChanged -= HandleLoginChange;
     }
 }

@@ -1,6 +1,8 @@
 ﻿@page "/inventory-updates"
 @using MP_Project.Shared
+@using Microsoft.AspNetCore.WebUtilities
 @inject IHttpClientFactory ClientFactory
+@inject AuthService AuthService
 
 <!--Update screen every 5 seconds to allow finance changes to occur-->
 <AutoRefresh IntervalSeconds="5" OnRefresh="OnInitializedAsync" OnStateChange="StateHasChanged" />
@@ -97,8 +99,24 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var userId = AuthService.UserId;
+
+        if (userId <= 0)
+            return;
+
         var http = ClientFactory.CreateClient("API");
-        var dashboard = await http.GetFromJsonAsync<DashboardDto>("api/products/inventoryupdates");
+
+        var query = new Dictionary<string, string?>
+        {
+            ["currentUserId"] = userId.ToString()
+        };
+
+        var url = QueryHelpers.AddQueryString(
+            "api/products/inventoryupdates",
+            query
+        );
+
+        var dashboard = await http.GetFromJsonAsync<DashboardDto>(url);
 
         if (dashboard != null)
         {

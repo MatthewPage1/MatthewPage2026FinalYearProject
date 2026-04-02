@@ -1,9 +1,5 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Transactions;
-using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using MP_Project.Shared;
-using static System.Net.WebRequestMethods;
 
 public class SimulationService
 {
@@ -17,7 +13,6 @@ public class SimulationService
 	public decimal CurrentBalance => currentBalance;
 
 	public event Action? OnChange;
-
 	private void NotifyStateChanged() => OnChange?.Invoke();
 
 	public SimulationService(IHttpClientFactory factory)
@@ -30,10 +25,9 @@ public class SimulationService
 		int customersPerDay,
 		int secondsPerDay,
 		List<Persona> personas,
-		List<Product> products)
+		List<Product> products,
+		int userId)
 	{
-		var simId = Guid.NewGuid();
-
 		if (IsRunning)
 		{
 			Console.WriteLine("Simulation already running - restarting...");
@@ -47,20 +41,31 @@ public class SimulationService
 		try
 		{
 			if (personas == null || personas.Count == 0)
-			{
 				return;
-			}
 
 			var http = ClientFactory.CreateClient("API");
 
-			var history = await http.GetFromJsonAsync<List<SimulationHistory>>(
-				"api/simulation/history"
+			var query = new Dictionary<string, string?>
+			{
+				["currentUserId"] = userId.ToString()
+			};
+
+			var url = QueryHelpers.AddQueryString(
+				"api/simulation/history/byuser",
+				query
 			);
+
+			var history = await http.GetFromJsonAsync<List<SimulationHistory>>(url);
 
 			if (history != null && history.Any())
 			{
 				currentDay = history.Max(x => x.Day);
 				currentBalance = history.OrderBy(x => x.Day).Last().Balance;
+			}
+			else
+			{
+				currentDay = 0;
+				currentBalance = 0;
 			}
 
 			int dayDelay = secondsPerDay * 1000;
@@ -73,12 +78,10 @@ public class SimulationService
 				for (int c = 0; c < customersPerDay; c++)
 				{
 					if (_cts.Token.IsCancellationRequested)
-					{
 						return;
-					}
 
 					var persona = personas[_rand.Next(personas.Count)];
-					var sales = GenerateSales(persona, products);
+					var sales = GenerateSales(persona, products, userId);
 
 					Sales.AddRange(sales);
 
@@ -88,37 +91,36 @@ public class SimulationService
 
 						try
 						{
-							var url1 = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}&day={day}";
-							var response = await http.PutAsync(url1, null);
+							var stockUrl = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}&day={day}&currentUserId={userId}";
+							var response = await http.PutAsync(stockUrl, null);
 
 							if (!response.IsSuccessStatusCode)
 							{
 								var error = await response.Content.ReadAsStringAsync();
+								Console.WriteLine(error);
 							}
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine($"POST ERROR: {ex.Message}");
+							Console.WriteLine($"STOCK ERROR: {ex.Message}");
 						}
 					}
 				}
 
-
-
-				var query = new Dictionary<string, string?>()
+				var dayQuery = new Dictionary<string, string?>
 				{
 					["day"] = day.ToString()
 				};
 
-				var url = QueryHelpers.AddQueryString(
+				var dayUrl = QueryHelpers.AddQueryString(
 					"api/suppliertransactions/delivery-cost-today",
-					query
+					dayQuery
 				);
 
-				var deliveryCost = await http.GetFromJsonAsync<decimal>(url);
+				var deliveryCost = await http.GetFromJsonAsync<decimal>(dayUrl);
 				dailyCosts += deliveryCost;
 
-				await RecordDayAsync(dailyRevenue, dailyCosts);
+				await RecordDayAsync(dailyRevenue, dailyCosts, userId);
 
 				NotifyStateChanged();
 
@@ -140,16 +142,14 @@ public class SimulationService
 	public void Stop()
 	{
 		if (_cts != null && !_cts.IsCancellationRequested)
-		{
 			_cts.Cancel();
-		}
 
 		Console.WriteLine("SIMULATION STOPPED");
 		IsRunning = false;
 		NotifyStateChanged();
 	}
 
-	private List<Sale> GenerateSales(Persona persona, List<Product> products)
+	private List<Sale> GenerateSales(Persona persona, List<Product> products, int userId)
 	{
 		var sales = new List<Sale>();
 
@@ -173,7 +173,8 @@ public class SimulationService
 				Quantity = quantity,
 				SellingPrice = product.SellingPrice,
 				TotalPrice = product.SellingPrice * quantity,
-				SaleDate = DateTime.Now
+				SaleDate = DateTime.Now,
+				UserId = userId
 			});
 		}
 
@@ -201,7 +202,7 @@ public class SimulationService
 	private int currentDay = 0;
 	private decimal currentBalance = 0;
 
-	private async Task RecordDayAsync(decimal revenue, decimal costs)
+	private async Task RecordDayAsync(decimal revenue, decimal costs, int userId)
 	{
 		currentDay++;
 		currentBalance += (revenue - costs);
@@ -212,10 +213,12 @@ public class SimulationService
 			Balance = currentBalance,
 			Revenue = revenue,
 			Costs = costs,
-			Timestamp = DateTime.Now
+			Timestamp = DateTime.Now,
+			UserId = userId
 		};
 
 		var http = ClientFactory.CreateClient("API");
+
 		var response = await http.PostAsJsonAsync(
 			"api/simulation/history",
 			record

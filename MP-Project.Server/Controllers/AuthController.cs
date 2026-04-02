@@ -18,17 +18,6 @@ namespace MP_Project.Server.Controllers
 			_connString = config.GetConnectionString("DefaultConnection");
 		}
 
-		/*
-		private readonly AppDbContext _context;
-
-		public AuthController(AppDbContext context)
-		{
-			_context = context;
-		}
-		*/
-
-
-
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] MP_Project.Shared.LoginRequest request)
 		{
@@ -38,7 +27,7 @@ namespace MP_Project.Server.Controllers
 				await conn.OpenAsync();
 
 				using var cmd = new MySqlCommand(
-					"SELECT UserId, Username, PasswordHash FROM Users WHERE Username = @username",
+					"SELECT UserId, Username, PasswordHash, DisplayName FROM Users WHERE Username = @username",
 					conn
 				);
 
@@ -56,6 +45,7 @@ namespace MP_Project.Server.Controllers
 				var userId = reader.GetInt32("UserId");
 				var username = reader.GetString("Username");
 				var passwordHash = reader.GetString("PasswordHash");
+				var displayName = reader.GetString("DisplayName");
 				Console.WriteLine($"User {username} logged in with ID {userId}");	
 				Console.WriteLine($"Password hash from DB: {passwordHash}, Password from request: {request.Password}");	
 
@@ -71,62 +61,10 @@ namespace MP_Project.Server.Controllers
 				{
 					success = true,
 					message = "Login is successful",
-					currentUserId = userId,   //userId,
+					currentUserId = userId,   //userId
+					DisplayName = displayName
 				});
 
-				/*
-				 * var result = await _context.Users
-					.FirstOrDefaultAsync(u =>
-						u.Username == request.Username &&
-						u.PasswordHash == request.Password);
-						Console.Write($"result" , result);
-
-				
-
-					var connString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
-					using var conn = new MySqlConnection();
-					conn.Open();
-
-					var cmd = new MySqlCommand(
-						"SELECT UserId, PasswordHash FROM Users WHERE Username = @username",
-						conn
-					);
-
-					cmd.Parameters.AddWithValue("@username", request.Username);
-
-					using var reader = cmd.ExecuteReader();
-
-				
-				if (!result)
-					{
-						return Unauthorized(new
-						{
-							success = false,
-							message = "Invalid login"
-						});
-					}
-				
-				//var userId = reader.GetInt32("UserId");
-				//var storedPassword = reader.GetString("PasswordHash");
-				//Console.WriteLine($"User {request.Username} logged in with ID {userId}");
-
-				//if (storedPassword != request.Password)
-				//{
-				//	return Unauthorized(new
-				//	{
-				//		success = false,
-				//		message = "Invalid login"
-				//	});
-				//}
-
-				return Ok(new
-				{
-					success = true,
-					message = "Login is successful",
-					currentUserId = 2,   //userId,
-				});
-				*/
 			}
 			catch (Exception ex)
 			{

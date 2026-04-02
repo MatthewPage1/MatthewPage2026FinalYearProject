@@ -20,5 +20,6 @@ namespace MP_Project.Shared
 		public bool CheckedIn { get; set; }
 		public int SupplierID { get; set; }
 		public int ProductID { get; set; }
+		public int UserId { get; set; }
 	}
 }
