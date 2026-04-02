@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MP_Project.Server.Data;
 using MP_Project.Shared;
 using MySqlConnector;
+using BCrypt.Net;
 
 namespace MP_Project.Server.Controllers
 {
@@ -46,16 +47,23 @@ namespace MP_Project.Server.Controllers
 				var username = reader.GetString("Username");
 				var passwordHash = reader.GetString("PasswordHash");
 				var displayName = reader.GetString("DisplayName");
-				Console.WriteLine($"User {username} logged in with ID {userId}");	
-				Console.WriteLine($"Password hash from DB: {passwordHash}, Password from request: {request.Password}");	
+				Console.WriteLine($"User {username} logged in with ID {userId}");
+
+				// Use the following only to get the hash in the 1st place, then we'll store it in the DB and use that for comparison
+				// Do not use this repeadedly as it will generate a new hash every time and won't match the stored hash.
+				// Console.WriteLine($"hashed password = {BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 12)}");
 
 
-				if (passwordHash != request.Password)
+				// Now we compare the provided password with the stored hash using BCrypt's Verify method
+												
+				if (!BCrypt.Net.BCrypt.Verify(request.Password, passwordHash))
+				{
 					return Unauthorized(new
 					{
 						success = false,
 						message = "Invalid login"
 					});
+				}
 
 				return Ok(new
 				{
@@ -86,6 +94,7 @@ namespace MP_Project.Server.Controllers
 			HttpContext.Session.Clear();
 
 			*/
+		//	currentUserId = 0;
 			return Ok(new
 			{
 				success = true,

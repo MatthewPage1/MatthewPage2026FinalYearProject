@@ -48,7 +48,7 @@ else
                     <span>£@Money.ToString("N2")</span>
                 </div>
                 <div class="header-username">
-                    <span>Logged in As: @DisplayName</span>
+                    <span>@DisplayName</span>
                 </div>
             </div>
 
@@ -61,7 +61,7 @@ else
 }
 @code {
     private decimal Money;
-    private string DisplayName => AuthService.DisplayName ?? "Not Logged In";
+    private string DisplayName => AuthService.DisplayName ?? "Please Log In";
 
     protected override void OnInitialized()
     {

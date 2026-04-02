@@ -1,0 +1,61 @@
+CREATE DATABASE  IF NOT EXISTS `finalyearproject` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `finalyearproject`;
+-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+--
+-- Host: 127.0.0.1    Database: finalyearproject
+-- ------------------------------------------------------
+-- Server version	8.0.40
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `simulationhistory`
+--
+
+DROP TABLE IF EXISTS `simulationhistory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulationhistory` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `Day` int NOT NULL,
+  `Balance` decimal(10,2) NOT NULL,
+  `Revenue` decimal(10,2) DEFAULT '0.00',
+  `Costs` decimal(10,2) DEFAULT '0.00',
+  `Profit` decimal(10,2) GENERATED ALWAYS AS ((`Revenue` - `Costs`)) STORED,
+  `Timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `UserId` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `unique_user_day` (`UserId`,`Day`),
+  KEY `idx_userid` (`UserId`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `simulationhistory`
+--
+
+LOCK TABLES `simulationhistory` WRITE;
+/*!40000 ALTER TABLE `simulationhistory` DISABLE KEYS */;
+INSERT INTO `simulationhistory` (`Id`, `Day`, `Balance`, `Revenue`, `Costs`, `Timestamp`, `UserId`) VALUES (1,1,504.76,504.76,0.00,'2026-04-01 16:25:51',1),(2,2,1211.37,706.61,0.00,'2026-04-01 16:25:57',1),(3,3,1956.71,745.34,0.00,'2026-04-01 16:26:03',1),(4,4,2927.79,971.08,0.00,'2026-04-01 16:26:08',1),(5,5,3463.78,535.99,0.00,'2026-04-01 16:26:13',1),(6,6,4630.09,1166.31,0.00,'2026-04-01 16:26:18',1),(7,7,5354.72,724.63,0.00,'2026-04-01 16:26:23',1),(8,8,6046.64,691.92,0.00,'2026-04-01 16:26:29',1),(9,9,6791.28,744.64,0.00,'2026-04-01 16:26:34',1),(10,10,7816.45,1025.17,0.00,'2026-04-01 16:26:40',1),(11,1,0.00,0.00,0.00,'2026-04-01 23:58:20',2),(12,2,0.00,0.00,0.00,'2026-04-01 23:58:22',2),(13,3,0.00,0.00,0.00,'2026-04-01 23:58:23',2),(14,4,0.00,0.00,0.00,'2026-04-01 23:58:24',2),(15,5,0.00,0.00,0.00,'2026-04-01 23:58:25',2),(16,6,0.00,0.00,0.00,'2026-04-01 23:58:26',2),(17,7,0.00,0.00,0.00,'2026-04-01 23:58:27',2),(18,8,0.00,0.00,0.00,'2026-04-01 23:58:28',2),(19,9,0.00,0.00,0.00,'2026-04-01 23:58:29',2),(20,10,0.00,0.00,0.00,'2026-04-01 23:58:30',2),(21,11,0.00,0.00,0.00,'2026-04-02 14:30:39',2),(22,12,0.00,0.00,0.00,'2026-04-02 14:30:41',2),(23,11,7862.75,46.30,0.00,'2026-04-02 14:31:13',1);
+/*!40000 ALTER TABLE `simulationhistory` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-04-02 19:43:19

@@ -299,8 +299,8 @@ UPDATE Products
 SET UserId = 1
 WHERE ProductId IS NOT NULL;
 
-select * from products
-WHERE userId = 2;
+select * from products order by userID;
+
 
 
 select * from users;
@@ -308,3 +308,87 @@ select * from users;
 describe suppliertransaction;
 describe products;
 describe users;
+
+ALTER TABLE SimulationHistory
+ADD COLUMN UserId INT NOT NULL;
+
+ALTER TABLE simulationhistory
+ADD INDEX idx_userid (UserId);
+
+UPDATE SimulationHistory
+SET UserId = 1
+WHERE Id IS NOT NULL;
+
+ALTER TABLE suppliertransaction
+ADD COLUMN UserId INT NOT NULL;
+
+ALTER TABLE suppliertransaction
+ADD INDEX idx_userid (UserId);
+
+UPDATE suppliertransaction
+SET UserId = 1
+WHERE UserId IS NOT NULL;
+
+SELECT * FRoM suppliertransaction;
+SELECT * FROM simulationhistory;
+
+
+ALTER TABLE SimulationHistory
+ADD CONSTRAINT unique_user_day UNIQUE (UserId, Day);
+
+Describe simulationhistory;
+
+SELECT * FROM SAles;
+
+ALTER TABLE sales
+ADD COLUMN UserId INT NOT NULL;
+
+ALTER TABLE sales
+ADD INDEX idx_userid (UserId);
+
+UPDATE sales
+SET UserId = 1
+WHERE UserId IS NOT NULL;
+
+ALTER TABLE stockmovements
+ADD COLUMN UserId INT NOT NULL;
+
+ALTER TABLE stockmovements
+ADD INDEX idx_userid (UserId);
+
+UPDATE stockmovements
+SET UserId = 1
+WHERE UserId IS NOT NULL;
+
+SELECT * FROM stockmovements;
+
+truncate table sales;
+truncate table simulationhistory;
+truncate table suppliertransaction;
+
+SELECT * FROM simulationhistory;
+SELECT * FROM sales;
+SELECT * FROM suppliertransaction;
+
+SELECT * FROM users;
+ALTER TABLE Users
+ADD COLUMN DisplayName VARCHAR(255);
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE Users;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+INSERT INTO Users (UserId, Username, PasswordHash, DisplayName)
+VALUES 
+(1, 'User1', 'Password1', 'User One'),
+(2, 'User2', 'Password2', 'User Two'),
+(3, 'User3', 'Password3', 'User Three');
+
+select * from users;
+
+-- hashed password = $2a$12$Zcjrm6Do8QvoC7qG8/OZ5OxCtiOnIefXdlqdoKbLb7uuVhrnVi.6u
+-- hashed password = $2a$12$bbywgHL5cVdI9i5yrVHKV.SyKatZmEcz3/s8qdZuNB9tRV1L6wzZe
+-- hashed password = $2a$12$YqdMFxjbxOc6J3NlIVSR1upGSzE58Y9rEPZlXtJ8tS/RtiG1SEkCW
+
