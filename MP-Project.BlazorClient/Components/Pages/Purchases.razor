@@ -6,8 +6,6 @@
 @using Microsoft.AspNetCore.WebUtilities
 @implements IDisposable
 
-<AutoRefresh IntervalSeconds="5" OnRefresh="LoadTransactions" OnStateChange="StateHasChanged" />
-
 <div class="content-card">
     <div class="section-title">
         Purchases
@@ -138,6 +136,8 @@
     {
         var userId = AuthService.UserId;
 
+        var transaction = transactions.FirstOrDefault(t => t.TransactionID == transactionId);
+
         var http = ClientFactory.CreateClient("API");
 
         var url = QueryHelpers.AddQueryString(
@@ -150,12 +150,23 @@
 
         await http.PostAsync(url, null);
 
+        if (transaction != null && transaction.TotalPrice > 0)
+        {
+            await SimulationService.ApplyCostAsync(transaction.TotalPrice, userId);
+        }
+
         await LoadTransactions();
     }
 
     private async Task CheckInAllDeliveries()
     {
         var userId = AuthService.UserId;
+
+        var deliveriesToProcess = transactions
+            .Where(t => t.Processed && !t.CheckedIn)
+            .ToList();
+
+        var totalCost = deliveriesToProcess.Sum(t => t.TotalPrice);
 
         var http = ClientFactory.CreateClient("API");
 
@@ -168,12 +179,23 @@
 
         await http.PostAsync(url, null);
 
+        if (!SimulationService.IsRunning && totalCost > 0)
+        {
+            await SimulationService.ApplyCostAsync(totalCost, userId);
+        }
+
         await LoadTransactions();
     }
 
     private async Task CheckInPendingDeliveries()
     {
         var userId = AuthService.UserId;
+
+        var deliveriesToProcess = transactions
+            .Where(t => t.Processed && !t.CheckedIn)
+            .ToList();
+
+        var totalCost = deliveriesToProcess.Sum(t => t.TotalPrice);
 
         var http = ClientFactory.CreateClient("API");
 
@@ -185,6 +207,11 @@
             });
 
         await http.PostAsync(url, null);
+
+        if (!SimulationService.IsRunning && totalCost > 0)
+        {
+            await SimulationService.ApplyCostAsync(totalCost, userId);
+        }
 
         await LoadTransactions();
     }

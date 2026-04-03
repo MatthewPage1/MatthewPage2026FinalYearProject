@@ -4,9 +4,17 @@ using System.ComponentModel;
 public class AuthService
 {
 	public event Action? OnLoginStateChanged;
+	public event Action? OnChange;
+
 	public bool IsLoggedIn { get; private set; }
 	public int UserId { get; private set; }
-	public string DisplayName { get; private set; }
+	public string DisplayName { get; set; } = "";
+
+	public void SetDisplayName(string name)
+	{
+		DisplayName = name;
+		OnChange?.Invoke();
+	}
 
 	public void Login(int userId, string displayName)
 	{

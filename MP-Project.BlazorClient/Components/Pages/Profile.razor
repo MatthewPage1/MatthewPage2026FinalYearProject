@@ -1,5 +1,8 @@
 ﻿@page "/profile"
+@inject AuthService AuthService
 @inject ThemeService ThemeService
+@inject IHttpClientFactory ClientFactory
+
 
 <div class="content-card">
 
@@ -9,7 +12,7 @@
 
     <div class="profile-section">
 
-        <h5>Theme Settings</h5>
+        <h5> Theme Settings </h5>
 
         <div class="theme-toggle">
 
@@ -25,14 +28,53 @@
 
         </div>
 
+        <h5> Change Display Name </h5>
+        <div class="form-group">
+            <input @bind="newDisplayName" placeholder="Enter new display name" />
+            <button @onclick="UpdateDisplayName">Save</button>
+        </div>
+
+
     </div>
 
 </div>
 
 @code {
 
+    private string newDisplayName = "";
+    private string message = "";
+
     private async Task ChangeTheme(string theme)
     {
         await ThemeService.SetTheme(theme);
+    }
+
+    private async Task UpdateDisplayName()
+    {
+        if (string.IsNullOrWhiteSpace(newDisplayName))
+        {
+            message = "Display name cannot be empty";
+            return;
+        }
+
+        var client = ClientFactory.CreateClient("API");
+
+        var response = await client.PutAsJsonAsync(
+            $"api/users/{AuthService.UserId}/display-name",
+            new { DisplayName = newDisplayName }
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            AuthService.SetDisplayName(newDisplayName);
+            message = "Display name updated!";
+            newDisplayName = "";
+            StateHasChanged();
+            
+        }
+        else
+        {
+            message = "Failed to update display name.";
+        }
     }
 }

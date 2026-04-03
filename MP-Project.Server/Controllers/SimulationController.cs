@@ -31,6 +31,26 @@ public class SimulationController : ControllerBase
 	}
 
 
+	[HttpPut("history")]
+	public async Task<IActionResult> UpdateHistory([FromBody] SimulationHistory updated)
+	{
+		var existing = await _context.SimulationHistory
+			.FirstOrDefaultAsync(x => x.UserId == updated.UserId && x.Day == updated.Day);
+
+		if (existing == null)
+			return NotFound();
+
+		existing.Costs = updated.Costs;
+		existing.Revenue = updated.Revenue;
+		existing.Balance = updated.Balance;
+		existing.Timestamp = updated.Timestamp;
+
+		await _context.SaveChangesAsync();
+
+		return Ok(existing);
+	}
+
+
 	[HttpGet("history/byuser")]
 	public async Task<ActionResult<List<SimulationHistory>>> GetHistoryByUser(int currentUserId)
 	{
@@ -40,6 +60,17 @@ public class SimulationController : ControllerBase
 			.ToListAsync();
 	}
 
+	[HttpGet("history/by-user-day")]
+	public async Task<IActionResult> GetByUserAndDay(int userId, int day)
+	{
+		var record = await _context.SimulationHistory
+			.FirstOrDefaultAsync(x => x.UserId == userId && x.Day == day);
+
+		if (record == null)
+			return NotFound();
+
+		return Ok(record);
+	}
 
 	[HttpGet("balance/byuser")]
 	public async Task<ActionResult<decimal>> GetBalance(int currentUserId)
@@ -52,5 +83,8 @@ public class SimulationController : ControllerBase
 
 		return Ok(latest);
 	}
+
+
+
 
 }

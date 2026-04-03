@@ -15,9 +15,41 @@ public class SimulationService
 	public event Action? OnChange;
 	private void NotifyStateChanged() => OnChange?.Invoke();
 
+	private HashSet<int> processedTransactionIds = new();
+
 	public SimulationService(IHttpClientFactory factory)
 	{
 		ClientFactory = factory;
+	}
+
+	public async Task LoadBalanceAsync(int userId)
+	{
+		var http = ClientFactory.CreateClient("API");
+
+		var query = new Dictionary<string, string?>
+		{
+			["currentUserId"] = userId.ToString()
+		};
+
+		var url = QueryHelpers.AddQueryString(
+			"api/simulation/history/byuser",
+			query
+		);
+
+		var history = await http.GetFromJsonAsync<List<SimulationHistory>>(url);
+
+		if (history != null && history.Any())
+		{
+			currentDay = history.Max(x => x.Day);
+			currentBalance = history.OrderBy(x => x.Day).Last().Balance;
+		}
+		else
+		{
+			currentDay = 0;
+			currentBalance = 0;
+		}
+
+		NotifyStateChanged();
 	}
 
 	public async Task RunSimulationAsync(
@@ -30,7 +62,6 @@ public class SimulationService
 	{
 		if (IsRunning)
 		{
-			Console.WriteLine("Simulation already running - restarting...");
 			Stop();
 		}
 
@@ -45,33 +76,13 @@ public class SimulationService
 
 			var http = ClientFactory.CreateClient("API");
 
-			var query = new Dictionary<string, string?>
-			{
-				["currentUserId"] = userId.ToString()
-			};
-
-			var url = QueryHelpers.AddQueryString(
-				"api/simulation/history/byuser",
-				query
-			);
-
-			var history = await http.GetFromJsonAsync<List<SimulationHistory>>(url);
-
-			if (history != null && history.Any())
-			{
-				currentDay = history.Max(x => x.Day);
-				currentBalance = history.OrderBy(x => x.Day).Last().Balance;
-			}
-			else
-			{
-				currentDay = 0;
-				currentBalance = 0;
-			}
+			await LoadBalanceAsync(userId);
 
 			int dayDelay = secondsPerDay * 1000;
 
 			for (int day = 1; day <= days; day++)
 			{
+				currentDay++;
 				decimal dailyRevenue = 0;
 				decimal dailyCosts = 0;
 
@@ -92,13 +103,7 @@ public class SimulationService
 						try
 						{
 							var stockUrl = $"api/products/{sale.ProductID}/decrease-stock?quantity={sale.Quantity}&day={day}&currentUserId={userId}";
-							var response = await http.PutAsync(stockUrl, null);
-
-							if (!response.IsSuccessStatusCode)
-							{
-								var error = await response.Content.ReadAsStringAsync();
-								Console.WriteLine(error);
-							}
+							await http.PutAsync(stockUrl, null);
 						}
 						catch (Exception ex)
 						{
@@ -107,17 +112,59 @@ public class SimulationService
 					}
 				}
 
+				var checkInUrl = QueryHelpers.AddQueryString(
+					"api/SupplierTransactions/checkInPendingDeliveries",
+					new Dictionary<string, string?>
+					{
+						["currentUserId"] = userId.ToString()
+					});
+
+				var processUrl = QueryHelpers.AddQueryString(
+					"api/SupplierTransactions/processDeliveries",
+					new Dictionary<string, string?>
+					{
+						["currentUserId"] = userId.ToString()
+					});
+
+				await http.PostAsync(processUrl, null);
+
+				var purchaseUrl = QueryHelpers.AddQueryString(
+					"api/suppliertransactions",
+					new Dictionary<string, string?>
+					{
+						["currentUserId"] = userId.ToString()
+					});
+
+				var transactions = await http.GetFromJsonAsync<List<PurchaseDto>>(purchaseUrl);
+
+				var newTransactions = transactions?
+					.Where(t => t.CheckedIn && !processedTransactionIds.Contains(t.TransactionID))
+					.ToList() ?? new List<PurchaseDto>();
+
+				var newCosts = newTransactions.Sum(t => t.TotalPrice);
+
+				foreach (var t in newTransactions)
+				{
+					processedTransactionIds.Add(t.TransactionID);
+				}
+
+				if (newCosts > 0)
+				{
+					await ApplyCostAsync(newCosts, userId);
+				}
+
 				var dayQuery = new Dictionary<string, string?>
 				{
 					["day"] = day.ToString()
 				};
 
-				var dayUrl = QueryHelpers.AddQueryString(
+				var deliveryUrl = QueryHelpers.AddQueryString(
 					"api/suppliertransactions/delivery-cost-today",
 					dayQuery
 				);
 
-				var deliveryCost = await http.GetFromJsonAsync<decimal>(dayUrl);
+				var deliveryCost = await http.GetFromJsonAsync<decimal>(deliveryUrl);
+
 				dailyCosts += deliveryCost;
 
 				await RecordDayAsync(dailyRevenue, dailyCosts, userId);
@@ -133,7 +180,6 @@ public class SimulationService
 		}
 		finally
 		{
-			Console.WriteLine("SIMULATION FINISHED");
 			IsRunning = false;
 			NotifyStateChanged();
 		}
@@ -144,7 +190,6 @@ public class SimulationService
 		if (_cts != null && !_cts.IsCancellationRequested)
 			_cts.Cancel();
 
-		Console.WriteLine("SIMULATION STOPPED");
 		IsRunning = false;
 		NotifyStateChanged();
 	}
@@ -191,7 +236,8 @@ public class SimulationService
 					Quantity = 1,
 					SellingPrice = product.SellingPrice,
 					TotalPrice = product.SellingPrice,
-					SaleDate = DateTime.Now
+					SaleDate = DateTime.Now,
+					UserId = userId
 				});
 			}
 		}
@@ -204,30 +250,112 @@ public class SimulationService
 
 	private async Task RecordDayAsync(decimal revenue, decimal costs, int userId)
 	{
-		currentDay++;
-		currentBalance += (revenue - costs);
-
-		var record = new SimulationHistory
-		{
-			Day = currentDay,
-			Balance = currentBalance,
-			Revenue = revenue,
-			Costs = costs,
-			Timestamp = DateTime.Now,
-			UserId = userId
-		};
-
 		var http = ClientFactory.CreateClient("API");
 
-		var response = await http.PostAsJsonAsync(
-			"api/simulation/history",
-			record
+		var dayToUse = currentDay == 0 ? 1 : currentDay;
+
+		var query = new Dictionary<string, string?>
+		{
+			["userId"] = userId.ToString(),
+			["day"] = dayToUse.ToString()
+		};
+
+		var url = QueryHelpers.AddQueryString(
+			"api/simulation/history/by-user-day",
+			query
 		);
 
-		if (!response.IsSuccessStatusCode)
+		SimulationHistory? existing = null;
+
+		try
 		{
-			var error = await response.Content.ReadAsStringAsync();
-			throw new Exception(error);
+			existing = await http.GetFromJsonAsync<SimulationHistory>(url);
 		}
+		catch { }
+
+		if (existing != null)
+		{
+			existing.Revenue += revenue;
+			existing.Costs += costs;
+			existing.Balance += (revenue - costs);
+			existing.Timestamp = DateTime.Now;
+
+			await http.PutAsJsonAsync("api/simulation/history", existing);
+
+			currentBalance = existing.Balance;
+		}
+		else
+		{
+			currentDay = dayToUse;
+			currentBalance += (revenue - costs);
+
+			var record = new SimulationHistory
+			{
+				Day = currentDay,
+				Balance = currentBalance,
+				Revenue = revenue,
+				Costs = costs,
+				Timestamp = DateTime.Now,
+				UserId = userId
+			};
+
+			await http.PostAsJsonAsync("api/simulation/history", record);
+		}
+
+		NotifyStateChanged();
+	}
+
+	public async Task ApplyCostAsync(decimal amount, int userId)
+	{
+		var http = ClientFactory.CreateClient("API");
+
+		var dayToUse = currentDay == 0 ? 1 : currentDay;
+
+		var query = new Dictionary<string, string?>
+		{
+			["userId"] = userId.ToString(),
+			["day"] = dayToUse.ToString()
+		};
+
+		var url = QueryHelpers.AddQueryString(
+			"api/simulation/history/by-user-day",
+			query
+		);
+
+		SimulationHistory? existing = null;
+
+		try
+		{
+			existing = await http.GetFromJsonAsync<SimulationHistory>(url);
+		}
+		catch { }
+
+		if (existing != null)
+		{
+			existing.Costs += amount;
+			existing.Balance -= amount;
+
+			await http.PutAsJsonAsync("api/simulation/history", existing);
+
+			currentBalance = existing.Balance;
+		}
+		else
+		{
+			currentBalance -= amount;
+
+			var record = new SimulationHistory
+			{
+				Day = dayToUse,
+				Balance = currentBalance,
+				Revenue = 0,
+				Costs = amount,
+				Timestamp = DateTime.Now,
+				UserId = userId
+			};
+
+			await http.PostAsJsonAsync("api/simulation/history", record);
+		}
+
+		NotifyStateChanged();
 	}
 }

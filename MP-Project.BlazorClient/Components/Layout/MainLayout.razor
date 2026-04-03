@@ -28,27 +28,47 @@ else
             <NavLink href="/inventory-updates" class="nav-item">Inventory Updates</NavLink>
             <NavLink href="/purchases" class="nav-item">Purchases</NavLink>
             <NavLink href="/profile" class="nav-item">Profile</NavLink>
-            <NavLink href="/settings" class="nav-item">Settings</NavLink>
 
             <div class="middle-link">
                 <NavLink href="/DEV" class="nav-item">DEV</NavLink>
             </div>
+
             <div class="bottom-link">
-                <NavLink href="/log-in" class="nav-item">Log In / Sign Up</NavLink>
+                @if (AuthService.IsLoggedIn)
+                {
+                    <div class="nav-item" @onclick="Logout">Log Out</div>
+                }
+                else
+                {
+                    <NavLink href="/log-in" class="nav-item">Log In</NavLink>
+                }
             </div>
+
+            @if (showLogoutModal)
+            {
+                <div class="modal-overlay">
+                    <div class="logout-modal">
+
+                        <h2>Logged Out</h2>
+                        <p>You have been successfully logged out.</p>
+
+                        <button class="modal-btn" @onclick="CloseModal">
+                            OK
+                        </button>
+
+                    </div>
+                </div>
+            }
         </div>
 
         <div class="main-content">
             <div class="header-bar">
                 <div class="header">
-                    Inventory Management System
+                    @DisplayNameWithSuffix Inventory Management System
                 </div>
 
                 <div class="header-money">
                     <span>£@Money.ToString("N2")</span>
-                </div>
-                <div class="header-username">
-                    <span>@DisplayName</span>
                 </div>
             </div>
 
@@ -61,13 +81,36 @@ else
 }
 @code {
     private decimal Money;
-    private string DisplayName => AuthService.DisplayName ?? "Please Log In";
+    private string DisplayNameWithSuffix =>
+        AuthService.IsLoggedIn && !string.IsNullOrWhiteSpace(AuthService.DisplayName)
+            ? $"{AuthService.DisplayName}'s"
+            : "";
 
-    protected override void OnInitialized()
+    private bool showLogoutModal = false;
+
+    private void Logout()
+    {
+        AuthService.Logout();
+        showLogoutModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showLogoutModal = false;
+        Nav.NavigateTo("/login"); 
+    }
+
+
+    protected override async Task OnInitializedAsync()
     {
         ThemeService.OnThemeChanged += Refresh;
         SimulationService.OnChange += UpdateMoney;
         AuthService.OnLoginStateChanged += HandleLoginChange;
+
+        if (AuthService.IsLoggedIn)
+        {
+            await SimulationService.LoadBalanceAsync(AuthService.UserId);
+        }
 
         Money = SimulationService.CurrentBalance;
     }
@@ -85,14 +128,21 @@ else
 
     private Task RefreshMoney()
     {
-        Money = SimulationService.CurrentBalance;
+        InvokeAsync(StateHasChanged);
         return Task.CompletedTask;
     }
 
-    private void HandleLoginChange()
+    private async void HandleLoginChange()
     {
-        InvokeAsync(StateHasChanged);
+        if (AuthService.IsLoggedIn)
+        {
+            await SimulationService.LoadBalanceAsync(AuthService.UserId);
+        }
+
+        Money = SimulationService.CurrentBalance;
+        await InvokeAsync(StateHasChanged);
     }
+
 
     public void Dispose()
     {
@@ -100,4 +150,6 @@ else
         SimulationService.OnChange -= UpdateMoney;
         AuthService.OnLoginStateChanged -= HandleLoginChange;
     }
+
+
 }
