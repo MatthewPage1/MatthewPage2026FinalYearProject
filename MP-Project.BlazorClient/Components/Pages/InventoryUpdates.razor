@@ -13,24 +13,19 @@
         Inventory Updates
     </div>
 
-    <!-- Search bar-->
-    <div class="search-bar-container">
-        <input type="text"
-               class="form-control"
-               placeholder="Search product..." />
-    </div>
-
     <div class="inventory-grid">
 
         <!-- Best Sellers box-->
         <div class="inventory-panel">
             <div class="panel-title">Best Sellers</div>
-            <div class="panel-body">
+            <div class="stock-list">
                 @if (BestSellers != null)
                 {
                     @foreach (var item in BestSellers)
                     {
-                        <div class="panel-item">@item.ProductName</div>
+                        <div class="panel-item">
+                            <strong>@item.ProductName</strong>
+                        </div>
                     }
                 }
             </div>
@@ -39,12 +34,14 @@
         <!-- Underperforming box-->
         <div class="inventory-panel">
             <div class="panel-title">Underperforming</div>
-            <div class="panel-body">
+            <div class="stock-list">
                 @if (Underperforming != null)
                 {
                     @foreach (var item in Underperforming)
                     {
-                        <div class="panel-item">@item.ProductName</div>
+                        <div class="panel-item">
+                            <strong>@item.ProductName</strong>
+                        </div>
                     }
                 }
             </div>
@@ -70,18 +67,23 @@
                 <span class="total-stock-boxed">
                     Total Stock: @TotalStockByGroup?.Sum(x => x.TotalStock)
                 </span>
+                <span class="total-stock-boxed">
+                    Stock Value: £@TotalStockByGroup?.Sum(x => x.TotalValue).ToString("N2")
+                </span>
             </div>
         </div>
 
         <!-- Recently ordered box-->
         <div class="inventory-panel">
             <div class="panel-title">Recently Ordered</div>
-            <div class="panel-body">
+            <div class="stock-list">
                 @if (RecentlyOrdered != null)
                 {
                     @foreach (var item in RecentlyOrdered)
                     {
-                        <div class="panel-item">@item.ProductName</div>
+                        <div class="panel-item">
+                            <strong>@item.ProductName</strong>
+                        </div>
                     }
                 }
             </div>
@@ -139,5 +141,6 @@
     {
         public string? ProductGroup { get; set; }
         public int TotalStock { get; set; }
+        public decimal TotalValue { get; set; }
     }
 }

@@ -96,42 +96,6 @@ public class ProductsController : ControllerBase
 
 		return Ok(product);
 	}
-/*
-	//PUT to increase the stock of a speicfic product and also log the movement of stock
-	[HttpPut("{id}/increase-stock")]
-	public async Task<IActionResult> IncreaseStock(int id, int quantity)
-	{
-		var product = await _context.products.FindAsync(id);
-
-		if (product == null)
-			return NotFound("Product not found.");
-
-		if (quantity <= 0)
-			return BadRequest("Quantity must be greater than zero.");
-
-		product.StockCount += quantity;
-
-		//update stock increase
-		if (product.StockCount > 0)
-		{
-			product.Availability = "InStock";
-		}
-
-		_context.StockMovements.Add(new StockMovement
-		{
-			ProductId = product.ProductId,
-			ChangeAmount = -quantity,
-			MovementType = "Sale",
-			CreatedAt = DateTime.UtcNow,
-			UserId = currentUserId
-		});
-
-		await _context.SaveChangesAsync();
-
-		return Ok(product);
-	}
-*/
-
 
 	//GET to return best selling, total stock per group, recently ordered and underperforming
 	[HttpGet("inventoryupdates")]
@@ -146,7 +110,6 @@ public class ProductsController : ControllerBase
 				TotalSold = g.Sum(sm => -sm.ChangeAmount)
 			})
 			.OrderByDescending(x => x.TotalSold)
-			.Take(5)
 			.Join(_context.products.Where(p => p.UserId == currentUserId),
 				  summary => summary.ProductId,
 				  product => product.ProductId,
@@ -159,19 +122,36 @@ public class ProductsController : ControllerBase
 			.Select(g => new
 			{
 				ProductGroup = g.Key,
-				TotalStock = g.Sum(p => p.StockCount)
+				TotalStock = g.Sum(p => p.StockCount),
+				TotalValue = g.Sum(p => p.StockCount * p.CostPrice)
 			})
 			.OrderByDescending(x => x.TotalStock)
 			.ToListAsync();
 
-		var recentlyOrdered = await _context.StockMovements
-			.Where(sm => sm.ChangeAmount > 0 && sm.UserId == currentUserId)
-			.OrderByDescending(sm => sm.CreatedAt)
-			.Take(5)
+		var totalStockValue = totalStockByGroup.Sum(x => x.TotalValue);
+
+		var recentlyOrdered = await _context.SupplierTransaction
+			.Where(st => st.UserId == currentUserId)
+			.OrderByDescending(st => st.TransactionDate)
 			.Join(_context.products.Where(p => p.UserId == currentUserId),
-				  sm => sm.ProductId,
+				  st => st.ProductID,
 				  product => product.ProductId,
-				  (sm, product) => product)
+				  (st, product) => product)
+			.ToListAsync();
+
+		var underperforming = await _context.Sales
+			.Where(s => s.UserId == currentUserId)
+			.GroupBy(s => s.ProductID)
+			.Select(g => new
+			{
+				ProductId = g.Key,
+				TotalSold = g.Sum(s => s.Quantity)
+			})
+			.OrderBy(x => x.TotalSold)
+			.Join(_context.products.Where(p => p.UserId == currentUserId),
+				  summary => summary.ProductId,
+				  product => product.ProductId,
+				  (summary, product) => product)
 			.ToListAsync();
 
 		return Ok(new
@@ -179,7 +159,8 @@ public class ProductsController : ControllerBase
 			BestSellers = bestSellers,
 			TotalStockByGroup = totalStockByGroup,
 			RecentlyOrdered = recentlyOrdered,
-			Underperforming = new List<Product>()
+			Underperforming = underperforming,
+			TotalStockValue = totalStockValue
 		});
 	}
 
