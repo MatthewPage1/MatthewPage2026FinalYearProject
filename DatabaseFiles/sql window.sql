@@ -392,3 +392,19 @@ select * from users;
 -- hashed password = $2a$12$bbywgHL5cVdI9i5yrVHKV.SyKatZmEcz3/s8qdZuNB9tRV1L6wzZe
 -- hashed password = $2a$12$YqdMFxjbxOc6J3NlIVSR1upGSzE58Y9rEPZlXtJ8tS/RtiG1SEkCW
 
+SELECT * FROM suppliertransaction;
+SELECT * FROM simulationhistory;
+SELECT * FROM SALES;
+
+ALTER TABLE products
+ADD COLUMN Promotion boolean NOT NULL;
+
+ALTER TABLE products
+ADD COLUMN OriginalSellingPrice decimal(10,2) NOT NULL;
+
+
+UPDATE Products
+SET OriginalSellingPrice = SellingPrice;
+
+
+SELECT * FROM products;
