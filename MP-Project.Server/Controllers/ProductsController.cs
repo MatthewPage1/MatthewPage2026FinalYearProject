@@ -163,7 +163,7 @@ public class ProductsController : ControllerBase
 			TotalStockValue = totalStockValue
 		});
 	}
-
+	/*
 	[HttpGet("finances")]
 	public async Task<IActionResult> GetFinances()
 	{
@@ -182,6 +182,43 @@ public class ProductsController : ControllerBase
 			Profit = profit
 		});
 	}
+	*/
+
+	[HttpPut("promotion")]
+	public async Task<IActionResult> UpdatePromotion([FromBody] Product updated)
+	{
+		var product = await _context.products
+			.FirstOrDefaultAsync(p => p.ProductId == updated.ProductId);
+
+		if (product == null)
+			return NotFound();
+
+		var rand = Random.Shared;
+
+		if (updated.Promotion)
+		{
+			product.Promotion = true;
+
+			var discountPercent = rand.Next(5, 51);
+			var multiplier = 1 - (discountPercent / 100m);
+
+			var discountedPrice = product.OriginalSellingPrice * multiplier;
+
+			product.SellingPrice = Math.Max(product.CostPrice, discountedPrice);
+		}
+		else
+		{
+			product.Promotion = false;
+
+			product.SellingPrice = product.OriginalSellingPrice;
+		}
+
+		await _context.SaveChangesAsync();
+
+		return Ok(product);
+	}
+
+
 }
 
 

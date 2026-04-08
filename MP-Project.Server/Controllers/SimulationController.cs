@@ -17,8 +17,45 @@ public class SimulationController : ControllerBase
 	[HttpPost("history")]
 	public async Task<IActionResult> AddHistory(SimulationHistory record)
 	{
+		if (record.Day % 7 == 0)
+		{
+			Console.WriteLine($"User {record.UserId}: Day {record.Day} is divisible by 7");
+
+			var products = await _context.products
+				.Where(p => p.UserId == record.UserId)
+				.ToListAsync();
+
+			if (products.Any())
+			{
+				var rand = Random.Shared;
+
+				foreach (var product in products)
+				{
+					product.Promotion = false;
+					product.SellingPrice = product.OriginalSellingPrice;
+				}
+
+				var promoProducts = products
+					.OrderBy(x => rand.Next())
+					.Take(Math.Max(1, (int)Math.Ceiling(products.Count * 0.3)));
+
+				foreach (var product in promoProducts)
+				{
+					product.Promotion = true;
+
+					var discountPercent = rand.Next(5, 51);
+					var multiplier = 1 - (discountPercent / 100m);
+
+					var discountedPrice = product.OriginalSellingPrice * multiplier;
+
+					product.SellingPrice = Math.Max(product.CostPrice, discountedPrice);
+				}
+			}
+		}
+
 		_context.SimulationHistory.Add(record);
 		await _context.SaveChangesAsync();
+
 		return Ok();
 	}
 

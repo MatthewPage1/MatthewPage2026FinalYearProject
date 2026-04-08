@@ -41,7 +41,9 @@
 
                 <div class="product-info-box">
                     <div class="product-meta">
-                        <span><strong>Name:</strong> @product.ProductName</span>
+                        <span>
+                            <strong>Name:</strong> @product.ProductName
+                        </span>
                         <span>
                             <strong>Quantity:</strong> @product.StockCount
 							<span class="stock-badge @GetStockColour(product.StockCount)">
@@ -49,7 +51,13 @@
                             </span>
                         </span>
                         <span><strong>Cost Price:</strong> £@product.CostPrice</span>
-                        <span><strong>Selling Price:</strong> £@product.SellingPrice</span>
+                        <span><strong>Selling Price:</strong> £@product.OriginalSellingPrice</span>
+                        <span>
+                        @if (product.Promotion)
+                            {
+                                <span class="promo-label stock-red">PROMOTION £@product.SellingPrice</span>
+                            }
+                        </span>
                     </div>
 
                     <p class="product-description-text">
@@ -95,6 +103,25 @@
                             <img src="@($"https://barcode.tec-it.com/barcode.ashx?data={selectedProduct.gtin13}&code=EAN13&translate-esc=false")"
                                  alt="GTIN13 Barcode" />
                         </div>
+
+                        <div style="margin-top:10px;">
+                            @if (!selectedProduct.Promotion)
+                            {
+                                <button class="btn btn-warning"
+                                        @onclick="() => TogglePromotion(selectedProduct, true)">
+                                    Set Promotion
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary"
+                                        @onclick="() => TogglePromotion(selectedProduct, false)">
+                                    Remove Promotion
+                                </button>
+                            }
+                        </div>
+
+
 
                     </div>
 
@@ -209,18 +236,18 @@
 					["currentUserId"] = userId.ToString()
 				};
 
-		var url = QueryHelpers.AddQueryString(			
+        var url = QueryHelpers.AddQueryString(			
             "api/products/byuser", query
-		);
+        );
 
-		
+
 
         var result = await http.GetFromJsonAsync<List<Product>>(url);
         if (result != null)
             products = result;
     }
 
-	//filter products based on the search
+    //filter products based on the search
     private IEnumerable<Product> FilteredProducts =>
         string.IsNullOrWhiteSpace(searchText)
             ? products
@@ -258,7 +285,7 @@
         selectedProduct = product;
     }
 
-	//close modal popup
+    //close modal popup
     private void CloseModal()
     {
         selectedProduct = null;
@@ -294,7 +321,7 @@
         Navigation.NavigateTo("/purchases");
     }
 
-	//auto refresh for products to change the stock levels and finances when purchases are made
+    //auto refresh for products to change the stock levels and finances when purchases are made
     private async Task LoadProducts()
     {
         var userId = AuthService.UserId;
@@ -316,4 +343,19 @@
         if (result != null)
             products = result;
     }
+
+
+    //enable promotion for product when requested
+    async Task TogglePromotion(Product product, bool setPromotion)
+    {
+        var http = ClientFactory.CreateClient("API");
+
+        product.Promotion = setPromotion;
+
+        await http.PutAsJsonAsync("api/products/promotion", product);
+
+        StateHasChanged();
+    }
+
+
 }

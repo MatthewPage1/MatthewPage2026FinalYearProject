@@ -19,5 +19,7 @@
 		public string? Image { get; set; }
 		public int SupplierID { get; set; }
 		public int UserId { get; set; }
+		public Boolean Promotion { get; set; }
+		public decimal OriginalSellingPrice { get; set; }
 	}
 }
