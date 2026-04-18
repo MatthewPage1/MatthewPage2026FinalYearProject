@@ -28,6 +28,7 @@ CREATE TABLE `users` (
   `UserId` int NOT NULL AUTO_INCREMENT,
   `Username` varchar(100) NOT NULL,
   `PasswordHash` varchar(255) NOT NULL,
+  `DisplayName` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`UserId`),
   UNIQUE KEY `Username` (`Username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -39,7 +40,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'User1','Password1'),(2,'User2','Password2'),(3,'User3','Password3');
+INSERT INTO `users` VALUES (1,'User1','$2a$12$Zcjrm6Do8QvoC7qG8/OZ5OxCtiOnIefXdlqdoKbLb7uuVhrnVi.6u','matthew'),(2,'User2','$2a$12$bbywgHL5cVdI9i5yrVHKV.SyKatZmEcz3/s8qdZuNB9tRV1L6wzZe','User Two'),(3,'User3','$2a$12$YqdMFxjbxOc6J3NlIVSR1upGSzE58Y9rEPZlXtJ8tS/RtiG1SEkCW','User Three');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-30 21:41:58
+-- Dump completed on 2026-04-18 13:07:53
