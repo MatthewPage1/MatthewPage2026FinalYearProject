@@ -20,7 +20,16 @@
                placeholder="Search product..."
                @bind="searchText"
                @bind:event="oninput" />
+
+        <select @bind="sortOption" class="sort-dropdown">
+            <option value="">Sort By</option>
+            <option value="priceAsc">Price (Low to High)</option>
+            <option value="priceDesc">Price (High to Low)</option>
+            <option value="quantityAsc">Quantity (Low to High)</option>
+            <option value="quantityDesc">Quantity (High to Low)</option>
+        </select>
     </div>
+
 
     <div class="product-list">
         <!-- For each product, a row with image, product name, stock count + badge, cost + selling price-->
@@ -213,6 +222,7 @@
     private string searchText = string.Empty;
     private int purchaseQuantity = 1;
     private DateTime deliveryDate = DateTime.Today;
+    private string sortOption = string.Empty;
 
     //fetch the products to display when the page loads
     protected override async Task OnInitializedAsync()
@@ -248,12 +258,33 @@
     }
 
     //filter products based on the search
-    private IEnumerable<Product> FilteredProducts =>
-        string.IsNullOrWhiteSpace(searchText)
-            ? products
-            : products.Where(p =>
-                p.ProductName != null &&
-                p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+    private IEnumerable<Product> FilteredProducts
+    {
+        get
+        {
+            var query = products.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(p =>
+                    p.ProductName != null &&
+                    p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            query = sortOption switch
+            {
+                "priceAsc" => query.OrderBy(p => p.OriginalSellingPrice),
+                "priceDesc" => query.OrderByDescending(p => p.OriginalSellingPrice),
+                "quantityAsc" => query.OrderBy(p => p.StockCount),
+                "quantityDesc" => query.OrderByDescending(p => p.StockCount),
+                _ => query
+            };
+
+            return query;
+        }
+    }
+
+
 
     //determine the status of stock and apply a colour marker
     private string GetStockColour(int stock)
