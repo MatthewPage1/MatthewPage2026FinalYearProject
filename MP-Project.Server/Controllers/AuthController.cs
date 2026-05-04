@@ -49,13 +49,7 @@ namespace MP_Project.Server.Controllers
 				var displayName = reader.GetString("DisplayName");
 				Console.WriteLine($"User {username} logged in with ID {userId}");
 
-				// Use the following only to get the hash in the 1st place, then we'll store it in the DB and use that for comparison
-				// Do not use this repeadedly as it will generate a new hash every time and won't match the stored hash.
-				// Console.WriteLine($"hashed password = {BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 12)}");
-
-
-				// Now we compare the provided password with the stored hash using BCrypt's Verify method
-												
+				
 				if (!BCrypt.Net.BCrypt.Verify(request.Password, passwordHash))
 				{
 					return Unauthorized(new
@@ -88,13 +82,6 @@ namespace MP_Project.Server.Controllers
 		[HttpPost("logout")]
 		public IActionResult Logout()
 		{
-
-			/* Commented out as to replace with a different loggin system
-			MySqlConnection.ClearAllPools();
-			HttpContext.Session.Clear();
-
-			*/
-		//	currentUserId = 0;
 			return Ok(new
 			{
 				success = true,

@@ -163,26 +163,7 @@ public class ProductsController : ControllerBase
 			TotalStockValue = totalStockValue
 		});
 	}
-	/*
-	[HttpGet("finances")]
-	public async Task<IActionResult> GetFinances()
-	{
-		var revenue = await _context.Sales
-			.SumAsync(s => (decimal?)s.TotalPrice) ?? 0;
 
-		var costs = await _context.SupplierTransaction
-			.SumAsync(t => (decimal?)t.TotalPrice) ?? 0;
-
-		var profit = revenue - costs;
-
-		return Ok(new
-		{
-			Revenue = revenue,
-			Costs = costs,
-			Profit = profit
-		});
-	}
-	*/
 
 	[HttpPut("promotion")]
 	public async Task<IActionResult> UpdatePromotion([FromBody] Product updated)

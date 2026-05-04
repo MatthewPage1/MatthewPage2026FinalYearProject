@@ -80,12 +80,16 @@ public class SimulationService
 
 			int dayDelay = secondsPerDay * 1000;
 
+			//for each day
 			for (int day = 1; day <= days; day++)
 			{
+				//increment current day to record it in sales and transactions
 				currentDay++;
+				//set daily revenue and costs to 0 for the new day
 				decimal dailyRevenue = 0;
 				decimal dailyCosts = 0;
 
+				//for each customer per day, generate sales based on a random persona and their shopping list
 				for (int c = 0; c < customersPerDay; c++)
 				{
 					if (_cts.Token.IsCancellationRequested)
@@ -96,6 +100,7 @@ public class SimulationService
 
 					Sales.AddRange(sales);
 
+					//for each sale, add the total price to daily revenue and decrease stock of the product
 					foreach (var sale in sales)
 					{
 						dailyRevenue += sale.TotalPrice;
@@ -112,6 +117,7 @@ public class SimulationService
 					}
 				}
 
+				//check for deliveries to process and apply their costs
 				var checkInUrl = QueryHelpers.AddQueryString(
 					"api/SupplierTransactions/checkInPendingDeliveries",
 					new Dictionary<string, string?>
@@ -119,6 +125,7 @@ public class SimulationService
 						["currentUserId"] = userId.ToString()
 					});
 
+				//mark deliveries as checked in if delivery date is today or earlier
 				var processUrl = QueryHelpers.AddQueryString(
 					"api/SupplierTransactions/processDeliveries",
 					new Dictionary<string, string?>
@@ -128,6 +135,7 @@ public class SimulationService
 
 				await http.PostAsync(processUrl, null);
 
+				//get the transactions that were checked in today and not processed to apply costs
 				var purchaseUrl = QueryHelpers.AddQueryString(
 					"api/suppliertransactions",
 					new Dictionary<string, string?>
@@ -137,10 +145,12 @@ public class SimulationService
 
 				var transactions = await http.GetFromJsonAsync<List<PurchaseDto>>(purchaseUrl);
 
+				//filter transactions to only include those that were checked in today and not processed yet
 				var newTransactions = transactions?
 					.Where(t => t.CheckedIn && !processedTransactionIds.Contains(t.TransactionID))
 					.ToList() ?? new List<PurchaseDto>();
 
+				//sum the total price of the new transactions to apply as costs for the day
 				var newCosts = newTransactions.Sum(t => t.TotalPrice);
 
 				foreach (var t in newTransactions)
@@ -165,8 +175,10 @@ public class SimulationService
 
 				var deliveryCost = await http.GetFromJsonAsync<decimal>(deliveryUrl);
 
+				//apply delivery cost
 				dailyCosts += deliveryCost;
 
+				//record day revenue and costs in simulation history
 				await RecordDayAsync(dailyRevenue, dailyCosts, userId);
 
 				NotifyStateChanged();
