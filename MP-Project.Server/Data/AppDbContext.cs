@@ -28,7 +28,7 @@ namespace MP_Project.Server.Data
 				}
 				else
 				{
-					throw new Exception("No connection string found for this request.");
+					throw new Exception("No connection string found");
 				}
 			}
 		}

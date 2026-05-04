@@ -219,6 +219,7 @@ CREATE TABLE SupplierTransaction (
         REFERENCES Products(ProductID)
 );
 
+SELECT * FROM ;
 SELECT * FROM SupplierTransaction;
 DROP TABLE SupplierTransaction;
 INSERT INTO suppliertransaction
@@ -232,7 +233,7 @@ SELECT * FROM suppliertransaction;
 Drop Table suppliertransaction;
 
 
-
+Select * from tabletest;test
 
 SELECT * FROM products;
 
@@ -406,5 +407,6 @@ ADD COLUMN OriginalSellingPrice decimal(10,2) NOT NULL;
 UPDATE Products
 SET OriginalSellingPrice = SellingPrice;
 
-
+SELECT * FROM supplier;
 SELECT * FROM products;
+
