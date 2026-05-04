@@ -5,11 +5,11 @@ Clone this repo to your c drive
 
 Install MQSQL 8.x full install
 Use same password as noted in appsettings.json
-Connect to DB
+Connect to database
 Then from left hand menu use database import/restore
 Use file dbdump20022026.sql (or later version)
 Open script "sql window.sql"
-Run Select * from products to prove DB ok
+Run Select * from products to prove the database functions properly
 
 Then install visual studio 2026
 Open solution file 
@@ -18,4 +18,5 @@ Test this at https://localhost:7190/swagger/index.html
 Prove the GET API works  "Try this out"
 
 Then Build the Blazer client
-All should work fine
+
+System should now work as expected
