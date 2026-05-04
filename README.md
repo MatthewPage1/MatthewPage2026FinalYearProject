@@ -18,4 +18,5 @@ Test this at https://localhost:7190/swagger/index.html
 Prove the GET API works  "Try this out"
 
 Then Build the Blazer client
-All should work fine
+
+System should now work as expected
